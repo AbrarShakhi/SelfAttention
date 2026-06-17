@@ -1,0 +1,16 @@
+package com.abrarshakhi.selfattention.domain.repository
+
+import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
+import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
+import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+
+interface AttendanceRepository {
+    fun getAttendanceForSubject(subjectId: Long): Flow<List<AttendanceRecord>>
+    fun getAttendanceForDate(date: LocalDate): Flow<List<AttendanceRecord>>
+    fun getAllAttendance(): Flow<List<AttendanceRecord>>
+    suspend fun getRecordForSubjectAndDate(subjectId: Long, date: LocalDate): AttendanceRecord?
+    suspend fun upsertRecord(subjectId: Long, date: LocalDate, status: AttendanceStatus)
+    suspend fun deleteRecord(subjectId: Long, date: LocalDate)
+    suspend fun deleteAllForSubject(subjectId: Long)
+}
