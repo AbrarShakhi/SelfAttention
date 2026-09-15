@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.ui.theme
+package com.abrarshakhi.selfattention.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -1,0 +1,3 @@
+package com.abrarshakhi.selfattention.presentation.navigation
+
+interface BottomKey

@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.ui.theme
+package com.abrarshakhi.selfattention.presentation.theme
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme

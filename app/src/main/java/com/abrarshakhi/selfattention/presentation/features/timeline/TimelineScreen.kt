@@ -23,22 +23,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import com.abrarshakhi.selfattention.presentation.components.DayStrip
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
-import com.abrarshakhi.selfattention.ui.theme.Absent
-import com.abrarshakhi.selfattention.ui.theme.CaveatFamily
-import com.abrarshakhi.selfattention.ui.theme.Holiday
-import com.abrarshakhi.selfattention.ui.theme.Ink
-import com.abrarshakhi.selfattention.ui.theme.Ink2
-import com.abrarshakhi.selfattention.ui.theme.Ink3
-import com.abrarshakhi.selfattention.ui.theme.Present
-import com.abrarshakhi.selfattention.ui.theme.Today
-import java.time.LocalDate
+import com.abrarshakhi.selfattention.presentation.theme.Absent
+import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
+import com.abrarshakhi.selfattention.presentation.theme.Holiday
+import com.abrarshakhi.selfattention.presentation.theme.Ink2
+import com.abrarshakhi.selfattention.presentation.theme.Ink3
+import com.abrarshakhi.selfattention.presentation.theme.Present
 import java.time.format.DateTimeFormatter
 
 @Composable

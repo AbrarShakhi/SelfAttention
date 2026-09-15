@@ -18,9 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.abrarshakhi.selfattention.ui.theme.Ink3
-import com.abrarshakhi.selfattention.ui.theme.Present
-import kotlin.math.PI
+import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
+import com.abrarshakhi.selfattention.presentation.theme.Ink3
+import com.abrarshakhi.selfattention.presentation.theme.Present
 
 @Composable
 fun AttendanceRing(
@@ -61,7 +61,7 @@ fun AttendanceRing(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "${(progress * 100).toInt()}%",
-                fontFamily = com.abrarshakhi.selfattention.ui.theme.CaveatFamily,
+                fontFamily = CaveatFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = (size.value * 0.27f).sp,
                 color = MaterialTheme.colorScheme.onSurface,

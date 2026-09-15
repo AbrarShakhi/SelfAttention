@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.abrarshakhi.selfattention.ui.theme.Ink
+import com.abrarshakhi.selfattention.presentation.theme.Ink
 
 // Slightly irregular corner radii for hand-drawn feel
 fun sketchShape(seed: Int): RoundedCornerShape {

@@ -19,10 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.abrarshakhi.selfattention.ui.theme.Ink
-import com.abrarshakhi.selfattention.ui.theme.Ink2
-import com.abrarshakhi.selfattention.ui.theme.Paper
-import com.abrarshakhi.selfattention.ui.theme.Today
+import com.abrarshakhi.selfattention.presentation.theme.Ink
+import com.abrarshakhi.selfattention.presentation.theme.Ink2
+import com.abrarshakhi.selfattention.presentation.theme.Paper
+import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale

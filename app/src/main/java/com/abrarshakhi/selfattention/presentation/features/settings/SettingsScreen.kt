@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,14 +33,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.domain.model.ThemeMode
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
-import com.abrarshakhi.selfattention.ui.theme.CaveatFamily
-import com.abrarshakhi.selfattention.ui.theme.Ink
-import com.abrarshakhi.selfattention.ui.theme.Ink2
-import com.abrarshakhi.selfattention.ui.theme.Ink3
-import com.abrarshakhi.selfattention.ui.theme.Today
+import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
+import com.abrarshakhi.selfattention.presentation.theme.Ink
+import com.abrarshakhi.selfattention.presentation.theme.Ink2
+import com.abrarshakhi.selfattention.presentation.theme.Ink3
+import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -105,7 +103,14 @@ fun SettingsScreen(
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DayOfWeek.values().forEach { day ->
                         DropdownMenuItem(
-                            text = { Text(day.getDisplayName(TextStyle.FULL, Locale.getDefault())) },
+                            text = {
+                                Text(
+                                    day.getDisplayName(
+                                        TextStyle.FULL,
+                                        Locale.getDefault()
+                                    )
+                                )
+                            },
                             onClick = {
                                 viewModel.setWeekStartDay(day)
                                 expanded = false

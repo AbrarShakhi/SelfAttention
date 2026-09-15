@@ -19,10 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.abrarshakhi.selfattention.domain.model.Subject
 import com.abrarshakhi.selfattention.domain.model.SubjectStats
-import com.abrarshakhi.selfattention.ui.theme.Absent
-import com.abrarshakhi.selfattention.ui.theme.CaveatFamily
-import com.abrarshakhi.selfattention.ui.theme.Present
-import java.time.DayOfWeek
+import com.abrarshakhi.selfattention.presentation.theme.Absent
+import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
+import com.abrarshakhi.selfattention.presentation.theme.Present
 import java.time.format.TextStyle
 import java.util.Locale
 

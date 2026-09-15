@@ -22,16 +22,20 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindSubjectRepository(impl: SubjectRepositoryImpl): SubjectRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindAttendanceRepository(impl: AttendanceRepositoryImpl): AttendanceRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindAlarmScheduler(impl: AlarmSchedulerImpl): AlarmScheduler
 }
 

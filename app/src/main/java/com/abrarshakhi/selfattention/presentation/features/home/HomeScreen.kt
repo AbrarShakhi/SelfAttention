@@ -34,9 +34,9 @@ import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
 import com.abrarshakhi.selfattention.presentation.components.SketchBox
 import com.abrarshakhi.selfattention.presentation.components.SubjectCard
-import com.abrarshakhi.selfattention.ui.theme.CaveatFamily
-import com.abrarshakhi.selfattention.ui.theme.Ink2
-import com.abrarshakhi.selfattention.ui.theme.Today
+import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
+import com.abrarshakhi.selfattention.presentation.theme.Ink2
+import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
