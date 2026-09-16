@@ -6,8 +6,7 @@ import com.abrarshakhi.selfattention.domain.model.SubjectStats
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCase
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetSubjectStatsUseCase
 import com.abrarshakhi.selfattention.domain.usecase.subject.GetSubjectsUseCase
-import com.abrarshakhi.selfattention.presentation.home.HomeViewModel
-import io.mockk.any
+import com.abrarshakhi.selfattention.presentation.features.home.HomeViewModel
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

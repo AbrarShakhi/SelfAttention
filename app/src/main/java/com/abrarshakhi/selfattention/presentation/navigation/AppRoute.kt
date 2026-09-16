@@ -16,6 +16,9 @@ interface AppRoute : NavKey {
 
     @Serializable
     data object AddCourses : AppRoute
+
+    @Serializable
+    data class CourseDetails(val courseId: Long) : AppRoute
 }
 
 

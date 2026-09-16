@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.settings
+package com.abrarshakhi.selfattention.presentation.features.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,13 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,24 +27,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.domain.model.ThemeMode
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
-import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
 import com.abrarshakhi.selfattention.presentation.theme.Ink
 import com.abrarshakhi.selfattention.presentation.theme.Ink2
 import com.abrarshakhi.selfattention.presentation.theme.Ink3
 import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.DayOfWeek
 import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel,
 ) {
     val state by viewModel.state.collectAsState()
     val settings = state.settings
@@ -60,24 +52,6 @@ fun SettingsScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState()),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-            }
-            Text(
-                text = "Settings",
-                fontFamily = CaveatFamily,
-                style = MaterialTheme.typography.headlineLarge,
-            )
-        }
-
-        HorizontalDivider(color = Ink3)
-
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -95,19 +69,22 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        settings.weekStartDay.getDisplayName(TextStyle.FULL, Locale.getDefault()),
+                        settings.weekStartDay.getDisplayName(
+                            TextStyle.FULL,
+                            LocalLocale.current.platformLocale
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Text("▼", style = MaterialTheme.typography.bodySmall, color = Ink2)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DayOfWeek.values().forEach { day ->
+                    DayOfWeek.entries.forEach { day ->
                         DropdownMenuItem(
                             text = {
                                 Text(
                                     day.getDisplayName(
                                         TextStyle.FULL,
-                                        Locale.getDefault()
+                                        LocalLocale.current.platformLocale
                                     )
                                 )
                             },
@@ -126,10 +103,13 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    DayOfWeek.values().forEach { day ->
+                    DayOfWeek.entries.forEach { day ->
                         val selected = settings.weeklyHolidays.contains(day)
                         DayToggleChip(
-                            label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                            label = day.getDisplayName(
+                                TextStyle.SHORT,
+                                LocalLocale.current.platformLocale
+                            ),
                             selected = selected,
                             onClick = { viewModel.toggleHoliday(day) },
                         )
@@ -140,7 +120,7 @@ fun SettingsScreen(
             // Theme
             SettingsSection(title = "THEME") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ThemeMode.values().forEach { mode ->
+                    ThemeMode.entries.forEach { mode ->
                         val selected = settings.themeMode == mode
                         DayToggleChip(
                             label = mode.name.lowercase().replaceFirstChar { it.uppercase() },

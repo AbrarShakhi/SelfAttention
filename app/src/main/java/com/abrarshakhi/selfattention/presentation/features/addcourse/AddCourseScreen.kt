@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.addsubject
+package com.abrarshakhi.selfattention.presentation.features.addcourse
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,8 +34,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
 import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
 import com.abrarshakhi.selfattention.presentation.theme.Ink
@@ -44,13 +45,12 @@ import com.abrarshakhi.selfattention.presentation.theme.Ink3
 import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.DayOfWeek
 import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddSubjectScreen(
+fun AddCourseScreen(
     onDone: () -> Unit,
-    viewModel: AddSubjectViewModel = hiltViewModel(),
+    viewModel: AddCourseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val timePickerState = rememberTimePickerState(
@@ -71,12 +71,6 @@ fun AddSubjectScreen(
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
-        Text(
-            text = "Add Subject",
-            fontFamily = CaveatFamily,
-            style = MaterialTheme.typography.headlineLarge,
-        )
-
         // Sentence form
         SentenceRow {
             InlineLabel("I have")
@@ -100,11 +94,17 @@ fun AddSubjectScreen(
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             InlineLabel("every")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DayOfWeek.values().forEach { day ->
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                DayOfWeek.entries.forEach { day ->
                     val selected = state.selectedDays.contains(day)
                     DayChip(
-                        label = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                        label = day.getDisplayName(
+                            TextStyle.SHORT,
+                            LocalLocale.current.platformLocale
+                        ),
                         selected = selected,
                         onClick = { viewModel.toggleDay(day) },
                     )
@@ -166,14 +166,21 @@ fun AddSubjectScreen(
         }
 
         state.error?.let { err ->
-            Text(text = err, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = err,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
 
 @Composable
 private fun SentenceRow(content: @Composable () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         content()
     }
 }
@@ -208,7 +215,7 @@ private fun InlineTextField(
 @Composable
 private fun DayChip(label: String, selected: Boolean, onClick: () -> Unit) {
     val bg = if (selected) Today else Color.Transparent
-    val textColor = if (selected) androidx.compose.ui.graphics.Color.White else Ink
+    val textColor = if (selected) Color.White else Ink
     Text(
         text = label,
         style = MaterialTheme.typography.bodyMedium,

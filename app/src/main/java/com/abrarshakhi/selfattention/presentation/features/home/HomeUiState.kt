@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.home
+package com.abrarshakhi.selfattention.presentation.features.home
 
 import com.abrarshakhi.selfattention.domain.model.NextClass
 import com.abrarshakhi.selfattention.domain.model.OverallStats

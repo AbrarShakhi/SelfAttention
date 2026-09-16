@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.subjectdetail
+package com.abrarshakhi.selfattention.presentation.features.coursedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,19 +14,18 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
-class SubjectDetailViewModel @Inject constructor(
+class CourseDetailViewModel @Inject constructor(
     private val getSubjectById: GetSubjectByIdUseCase,
     private val getAttendance: GetAttendanceForSubjectUseCase,
     private val getSubjectStats: GetSubjectStatsUseCase,
     private val markAttendance: MarkAttendanceUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SubjectDetailUiState())
-    val state: StateFlow<SubjectDetailUiState> = _state
+    private val _state = MutableStateFlow(CourseDetailUiState())
+    val state: StateFlow<CourseDetailUiState> = _state
 
     fun load(subjectId: Long) {
         viewModelScope.launch {

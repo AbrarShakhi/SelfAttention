@@ -1,17 +1,18 @@
 package com.abrarshakhi.selfattention.presentation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.abrarshakhi.selfattention.presentation.settings.SettingsViewModel
+import com.abrarshakhi.selfattention.presentation.features.addcourse.AddCourseScreen
+import com.abrarshakhi.selfattention.presentation.features.coursedetail.CourseDetailScreen
+import com.abrarshakhi.selfattention.presentation.features.home.HomeScreen
+import com.abrarshakhi.selfattention.presentation.features.settings.SettingsScreen
+import com.abrarshakhi.selfattention.presentation.features.timeline.TimelineScreen
+import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
 
 @Composable
 fun AppNavigation(
@@ -28,24 +29,23 @@ fun AppNavigation(
         ),
         entryProvider = entryProvider {
             entry<AppRoute.Home> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Home")
-                }
+                HomeScreen(onCourseClick = {
+                    backStack.navigateTo(AppRoute.CourseDetails(it))
+                })
+            }
+            entry<AppRoute.CourseDetails> {
+                CourseDetailScreen(subjectId = it.courseId)
             }
             entry<AppRoute.Timeline> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Timeline")
-                }
+                TimelineScreen(onCourseClick = {
+                    backStack.navigateTo(AppRoute.CourseDetails(it))
+                })
             }
             entry<AppRoute.Settings> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Settings")
-                }
+                SettingsScreen(viewModel = settingsViewModel)
             }
             entry<AppRoute.AddCourses> {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("AddCourses")
-                }
+                AddCourseScreen(onDone = { backStack.back() })
             }
         }
     )

@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.home
+package com.abrarshakhi.selfattention.presentation.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +8,7 @@ import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCa
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetSubjectStatsUseCase
 import com.abrarshakhi.selfattention.domain.usecase.subject.GetSubjectsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -31,6 +32,7 @@ class HomeViewModel @Inject constructor(
         observeData()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
         viewModelScope.launch {
             getSubjects().flatMapLatest { subjects ->

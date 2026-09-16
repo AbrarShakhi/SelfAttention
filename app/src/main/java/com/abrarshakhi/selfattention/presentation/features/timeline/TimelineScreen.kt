@@ -1,5 +1,6 @@
-package com.abrarshakhi.selfattention.presentation.timeline
+package com.abrarshakhi.selfattention.presentation.features.timeline
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import com.abrarshakhi.selfattention.presentation.components.DayStrip
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
@@ -39,7 +40,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun TimelineScreen(
-    onSubjectClick: (Long) -> Unit,
+    onCourseClick: (Long) -> Unit,
     viewModel: TimelineViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -49,13 +50,6 @@ fun TimelineScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        Text(
-            text = "Timeline",
-            fontFamily = CaveatFamily,
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-        )
-
         DayStrip(
             days = state.weekDays,
             selectedDay = state.selectedDay,
@@ -64,7 +58,6 @@ fun TimelineScreen(
         )
 
         HorizontalDivider(modifier = Modifier.padding(top = 12.dp), color = Ink3)
-
         val formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM")
         SectionLabel(
             text = state.selectedDay.format(formatter).uppercase(),
@@ -91,7 +84,7 @@ fun TimelineScreen(
                 items(state.classesForDay) { scheduled ->
                     TimelineClassItem(
                         scheduled = scheduled,
-                        onClick = { onSubjectClick(scheduled.subject.id) },
+                        onClick = { onCourseClick(scheduled.subject.id) },
                     )
                 }
             }
@@ -99,6 +92,7 @@ fun TimelineScreen(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 private fun TimelineClassItem(scheduled: ScheduledClass, onClick: () -> Unit) {
     val statusColor = when (scheduled.record?.status) {
@@ -123,7 +117,11 @@ private fun TimelineClassItem(scheduled: ScheduledClass, onClick: () -> Unit) {
     ) {
         // Time column
         Text(
-            text = String.format("%02d:%02d", scheduled.subject.classHour, scheduled.subject.classMinute),
+            text = String.format(
+                "%02d:%02d",
+                scheduled.subject.classHour,
+                scheduled.subject.classMinute
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = Ink2,
             modifier = Modifier.width(40.dp),

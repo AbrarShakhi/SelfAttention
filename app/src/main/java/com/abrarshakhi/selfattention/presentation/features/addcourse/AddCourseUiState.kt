@@ -1,8 +1,8 @@
-package com.abrarshakhi.selfattention.presentation.addsubject
+package com.abrarshakhi.selfattention.presentation.features.addcourse
 
 import java.time.DayOfWeek
 
-data class AddSubjectUiState(
+data class AddCourseUiState(
     val name: String = "",
     val code: String = "",
     val selectedDays: Set<DayOfWeek> = emptySet(),

@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.timeline
+package com.abrarshakhi.selfattention.presentation.features.timeline
 
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.Subject

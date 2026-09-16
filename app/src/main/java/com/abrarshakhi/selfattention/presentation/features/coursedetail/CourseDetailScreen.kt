@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.subjectdetail
+package com.abrarshakhi.selfattention.presentation.features.coursedetail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
@@ -40,11 +39,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import com.abrarshakhi.selfattention.domain.model.Subject
@@ -62,14 +62,12 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectDetailScreen(
+fun CourseDetailScreen(
     subjectId: Long,
-    onBack: () -> Unit,
-    viewModel: SubjectDetailViewModel = hiltViewModel(),
+    viewModel: CourseDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -89,28 +87,6 @@ fun SubjectDetailScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState()),
     ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = subject.name,
-                    fontFamily = CaveatFamily,
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-                Text(text = subject.code, style = MaterialTheme.typography.bodySmall, color = Ink2)
-            }
-        }
-
-        HorizontalDivider(color = Ink3)
-
         // Stats row
         state.stats?.let { stats ->
             StatsRow(stats = stats, modifier = Modifier.padding(16.dp))
@@ -205,7 +181,12 @@ private fun MonthCalendar(
                 Icon(Icons.Default.ChevronLeft, contentDescription = "Previous month")
             }
             Text(
-                text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${month.year}",
+                text = "${
+                    month.month.getDisplayName(
+                        TextStyle.FULL,
+                        LocalLocale.current.platformLocale
+                    )
+                } ${month.year}",
                 fontFamily = CaveatFamily,
                 style = MaterialTheme.typography.titleLarge,
             )
@@ -216,9 +197,9 @@ private fun MonthCalendar(
 
         // Day-of-week headers
         Row(modifier = Modifier.fillMaxWidth()) {
-            DayOfWeek.values().forEach { dow ->
+            DayOfWeek.entries.forEach { dow ->
                 Text(
-                    text = dow.getDisplayName(TextStyle.NARROW, Locale.getDefault()),
+                    text = dow.getDisplayName(TextStyle.NARROW, LocalLocale.current.platformLocale),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
@@ -350,21 +331,39 @@ private fun AttendanceSheet(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Present),
             shape = RoundedCornerShape(12.dp),
-        ) { Text("✓  Present", fontFamily = CaveatFamily, style = MaterialTheme.typography.titleMedium) }
+        ) {
+            Text(
+                "✓  Present",
+                fontFamily = CaveatFamily,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
         Button(
             onClick = onAbsent,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Absent),
             shape = RoundedCornerShape(12.dp),
-        ) { Text("✗  Absent", fontFamily = CaveatFamily, style = MaterialTheme.typography.titleMedium) }
+        ) {
+            Text(
+                "✗  Absent",
+                fontFamily = CaveatFamily,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
         Button(
             onClick = onHoliday,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Holiday),
             shape = RoundedCornerShape(12.dp),
-        ) { Text("☀  Holiday", fontFamily = CaveatFamily, style = MaterialTheme.typography.titleMedium) }
+        ) {
+            Text(
+                "☀  Holiday",
+                fontFamily = CaveatFamily,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
 
         if (currentStatus != null) {
             OutlinedButton(

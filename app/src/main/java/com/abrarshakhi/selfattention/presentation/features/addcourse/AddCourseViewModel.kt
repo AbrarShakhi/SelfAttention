@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.addsubject
+package com.abrarshakhi.selfattention.presentation.features.addcourse
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,12 +13,12 @@ import java.time.DayOfWeek
 import javax.inject.Inject
 
 @HiltViewModel
-class AddSubjectViewModel @Inject constructor(
+class AddCourseViewModel @Inject constructor(
     private val addSubject: AddSubjectUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(AddSubjectUiState())
-    val state: StateFlow<AddSubjectUiState> = _state
+    private val _state = MutableStateFlow(AddCourseUiState())
+    val state: StateFlow<AddCourseUiState> = _state
 
     fun onNameChange(value: String) = _state.update { it.copy(name = value) }
     fun onCodeChange(value: String) = _state.update { it.copy(code = value) }

@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.home
+package com.abrarshakhi.selfattention.presentation.features.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,21 +14,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.domain.model.NextClass
 import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
@@ -41,13 +37,13 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+
 @Composable
 fun HomeScreen(
-    onSubjectClick: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
+    onCourseClick: (Long) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     if (state.isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -63,23 +59,6 @@ fun HomeScreen(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Self Attendance",
-                    fontFamily = CaveatFamily,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, contentDescription = "Settings")
-                }
-            }
-        }
-
         item {
             StatsHero(
                 progress = state.overallStats.attendancePercentage,
@@ -100,7 +79,7 @@ fun HomeScreen(
                     subject = subject,
                     stats = state.statsMap[subject.id],
                     seed = index + 5,
-                    onClick = { onSubjectClick(subject.id) },
+                    onClick = { onCourseClick(subject.id) },
                 )
             }
         }
@@ -150,6 +129,7 @@ private fun NextClassInfo(nextClass: NextClass?) {
                 minutesUntil < 60 -> "in ${minutesUntil}m · ${nextClass.scheduledAt.format(formatter)}"
                 nextClass.scheduledAt.toLocalDate() == now.toLocalDate() ->
                     "today · ${nextClass.scheduledAt.format(formatter)}"
+
                 else -> "tomorrow · ${nextClass.scheduledAt.format(formatter)}"
             }
             Text(

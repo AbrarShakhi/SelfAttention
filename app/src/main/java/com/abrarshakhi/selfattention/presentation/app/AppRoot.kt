@@ -13,7 +13,7 @@ import com.abrarshakhi.selfattention.presentation.navigation.AppNavigation
 import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
 import com.abrarshakhi.selfattention.presentation.navigation.BottomNavBar
 import com.abrarshakhi.selfattention.presentation.navigation.currentRoute
-import com.abrarshakhi.selfattention.presentation.settings.SettingsViewModel
+import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

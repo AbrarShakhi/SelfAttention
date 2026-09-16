@@ -1,4 +1,4 @@
-package com.abrarshakhi.selfattention.presentation.settings
+package com.abrarshakhi.selfattention.presentation.features.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,7 +6,7 @@ import com.abrarshakhi.selfattention.domain.model.ThemeMode
 import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -18,7 +18,8 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState())
-    val state: StateFlow<SettingsUiState> = _state
+    val state = _state.asStateFlow()
+    private val _isReady = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
