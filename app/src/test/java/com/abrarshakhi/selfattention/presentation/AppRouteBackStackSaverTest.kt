@@ -31,6 +31,27 @@ class AppRouteBackStackSaverTest {
         assertEquals(AppRoute.CourseDetails(courseId = 42L), restored[1])
     }
 
+    /** The editor is the newest arg-carrying route; it must survive too. */
+    @Test
+    fun `restores a deep stack through the course editor`() {
+        val restored = roundTrip(
+            stackOf(
+                AppRoute.Home,
+                AppRoute.CourseDetails(courseId = 7L),
+                AppRoute.CourseEditor(courseId = 7L),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                AppRoute.Home,
+                AppRoute.CourseDetails(courseId = 7L),
+                AppRoute.CourseEditor(courseId = 7L),
+            ),
+            restored.toList(),
+        )
+    }
+
     /** NavDisplay requires a non-empty stack, so an empty restore must fall back to Home. */
     @Test
     fun `falls back to Home when the saved stack is empty`() {
