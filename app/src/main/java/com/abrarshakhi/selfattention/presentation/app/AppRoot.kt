@@ -22,9 +22,10 @@ import com.abrarshakhi.selfattention.presentation.navigation.rememberAppBackStac
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppRoot(
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    startRoute: AppRoute = AppRoute.Home,
 ) {
-    val backStack = rememberAppBackStack()
+    val backStack = rememberAppBackStack(startRoute)
     val current = backStack.currentRoute()
     val currentChrome = current?.chrome()
 

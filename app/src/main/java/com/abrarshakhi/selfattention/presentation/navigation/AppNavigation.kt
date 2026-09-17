@@ -11,9 +11,11 @@ import com.abrarshakhi.selfattention.presentation.features.addcourse.AddCourseSc
 import com.abrarshakhi.selfattention.presentation.features.coursedetail.CourseDetailScreen
 import com.abrarshakhi.selfattention.presentation.features.courseeditor.CourseEditorScreen
 import com.abrarshakhi.selfattention.presentation.features.home.HomeScreen
+import com.abrarshakhi.selfattention.presentation.features.onboarding.OnboardingScreen
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsScreen
 import com.abrarshakhi.selfattention.presentation.features.timeline.TimelineScreen
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
+import com.abrarshakhi.selfattention.presentation.navigation.switchTapTo
 
 @Composable
 fun AppNavigation(
@@ -29,6 +31,20 @@ fun AppNavigation(
             rememberViewModelStoreNavEntryDecorator()
         ),
         entryProvider = entryProvider {
+            entry<AppRoute.Onboarding> {
+                OnboardingScreen(
+                    settingsViewModel = settingsViewModel,
+                    onFinish = {
+                        settingsViewModel.completeOnboarding()
+                        backStack.switchTapTo(AppRoute.Home)
+                    },
+                    onAddCourse = {
+                        settingsViewModel.completeOnboarding()
+                        backStack.switchTapTo(AppRoute.Home)
+                        backStack.navigateTo(AppRoute.AddCourses)
+                    },
+                )
+            }
             entry<AppRoute.Home> {
                 HomeScreen(onCourseClick = {
                     backStack.navigateTo(AppRoute.CourseDetails(it))

@@ -12,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.presentation.app.AppRoot
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
+import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
 import com.abrarshakhi.selfattention.presentation.theme.SelfAttentionTheme
 import com.abrarshakhi.selfattention.presentation.theme.isDark
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,19 +30,24 @@ class MainActivity : ComponentActivity() {
             SideEffect {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
-                        Color.TRANSPARENT,
-                        Color.TRANSPARENT
+                        Color.TRANSPARENT, Color.TRANSPARENT
                     ) { darkTheme },
                     navigationBarStyle = SystemBarStyle.auto(
-                        Color.TRANSPARENT,
-                        Color.TRANSPARENT
+                        Color.TRANSPARENT, Color.TRANSPARENT
                     ) { darkTheme },
                 )
             }
 
-            SelfAttentionTheme(themeMode = settingsState.settings.themeMode) {
+            SelfAttentionTheme(
+                themeMode = settingsState.settings.themeMode,
+                appFont = settingsState.settings.appFont,
+            ) {
                 if (!settingsState.isLoading) {
-                    AppRoot(settingsViewModel = settingsViewModel)
+                    AppRoot(
+                        settingsViewModel = settingsViewModel,
+                        startRoute = if (settingsState.settings.hasCompletedOnboarding) AppRoute.Home
+                        else AppRoute.Onboarding
+                    )
                 }
             }
         }

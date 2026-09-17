@@ -8,11 +8,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import com.abrarshakhi.selfattention.R
 import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
 import com.abrarshakhi.selfattention.presentation.navigation.BottomKey
 import com.abrarshakhi.selfattention.presentation.navigation.back
@@ -32,11 +36,20 @@ data class ScreenChrome(
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppRoute.chrome(): ScreenChrome = when (this) {
+    is AppRoute.Onboarding -> ScreenChrome(title = "Welcome")
+
     is AppRoute.Home -> ScreenChrome(
         title = "Home",
         topBar = { _, scrollBehavior ->
             TopAppBar(
-                title = { Text(text = "Home") },
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                },
                 scrollBehavior = scrollBehavior,
             )
         },

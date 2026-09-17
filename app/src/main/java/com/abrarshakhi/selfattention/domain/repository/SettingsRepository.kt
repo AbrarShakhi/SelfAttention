@@ -1,5 +1,6 @@
 package com.abrarshakhi.selfattention.domain.repository
 
+import com.abrarshakhi.selfattention.domain.model.AppFont
 import com.abrarshakhi.selfattention.domain.model.AppSettings
 import com.abrarshakhi.selfattention.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
@@ -10,4 +11,6 @@ interface SettingsRepository {
     suspend fun setWeekStartDay(day: DayOfWeek)
     suspend fun setWeeklyHolidays(days: Set<DayOfWeek>)
     suspend fun setThemeMode(mode: ThemeMode)
+    suspend fun setAppFont(font: AppFont)
+    suspend fun setOnboardingComplete()
 }

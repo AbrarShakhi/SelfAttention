@@ -3,10 +3,12 @@ package com.abrarshakhi.selfattention.di
 import android.app.AlarmManager
 import android.content.Context
 import com.abrarshakhi.selfattention.data.alarm.AlarmSchedulerImpl
+import com.abrarshakhi.selfattention.data.backup.JsonBackupCodec
 import com.abrarshakhi.selfattention.data.repository.AttendanceRepositoryImpl
 import com.abrarshakhi.selfattention.data.repository.SettingsRepositoryImpl
 import com.abrarshakhi.selfattention.data.repository.CourseRepositoryImpl
 import com.abrarshakhi.selfattention.domain.alarm.AlarmScheduler
+import com.abrarshakhi.selfattention.domain.backup.BackupCodec
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
 import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import com.abrarshakhi.selfattention.domain.repository.CourseRepository
@@ -37,6 +39,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAlarmScheduler(impl: AlarmSchedulerImpl): AlarmScheduler
+
+    @Binds
+    @Singleton
+    abstract fun bindBackupCodec(impl: JsonBackupCodec): BackupCodec
 }
 
 @Module

@@ -39,8 +39,12 @@ val AppRouteBackStackSaver: Saver<SnapshotStateList<AppRoute>, Any> =
         },
     )
 
+/**
+ * @param start only applies the first time the stack is created; a restored stack keeps whatever
+ *   the user was looking at.
+ */
 @Composable
-fun rememberAppBackStack(): SnapshotStateList<AppRoute> =
+fun rememberAppBackStack(start: AppRoute = AppRoute.Home): SnapshotStateList<AppRoute> =
     rememberSaveable(saver = AppRouteBackStackSaver) {
-        mutableStateListOf(AppRoute.Home)
+        mutableStateListOf(start)
     }
