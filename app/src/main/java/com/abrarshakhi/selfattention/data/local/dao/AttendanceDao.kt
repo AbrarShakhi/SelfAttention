@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AttendanceDao {
-    @Query("SELECT * FROM attendance WHERE subjectId = :subjectId")
-    fun getForSubject(subjectId: Long): Flow<List<AttendanceEntity>>
+    @Query("SELECT * FROM attendance WHERE courseId = :courseId")
+    fun getForCourse(courseId: Long): Flow<List<AttendanceEntity>>
 
     @Query("SELECT * FROM attendance WHERE epochDay = :epochDay")
     fun getForDate(epochDay: Long): Flow<List<AttendanceEntity>>
@@ -18,15 +18,15 @@ interface AttendanceDao {
     @Query("SELECT * FROM attendance")
     fun getAll(): Flow<List<AttendanceEntity>>
 
-    @Query("SELECT * FROM attendance WHERE subjectId = :subjectId AND epochDay = :epochDay LIMIT 1")
-    suspend fun getRecord(subjectId: Long, epochDay: Long): AttendanceEntity?
+    @Query("SELECT * FROM attendance WHERE courseId = :courseId AND epochDay = :epochDay LIMIT 1")
+    suspend fun getRecord(courseId: Long, epochDay: Long): AttendanceEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(record: AttendanceEntity)
 
-    @Query("DELETE FROM attendance WHERE subjectId = :subjectId AND epochDay = :epochDay")
-    suspend fun delete(subjectId: Long, epochDay: Long)
+    @Query("DELETE FROM attendance WHERE courseId = :courseId AND epochDay = :epochDay")
+    suspend fun delete(courseId: Long, epochDay: Long)
 
-    @Query("DELETE FROM attendance WHERE subjectId = :subjectId")
-    suspend fun deleteAllForSubject(subjectId: Long)
+    @Query("DELETE FROM attendance WHERE courseId = :courseId")
+    suspend fun deleteAllForCourse(courseId: Long)
 }

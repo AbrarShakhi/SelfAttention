@@ -2,9 +2,9 @@ package com.abrarshakhi.selfattention.domain.usecase
 
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
-import com.abrarshakhi.selfattention.domain.model.Subject
+import com.abrarshakhi.selfattention.domain.model.Course
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
-import com.abrarshakhi.selfattention.domain.usecase.attendance.GetSubjectStatsUseCase
+import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -16,21 +16,21 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 
 /**
- * Tests for [GetSubjectStatsUseCase].
+ * Tests for [GetCourseStatsUseCase].
  *
  * Verifies that attendance stats (present, absent, holiday, percentage) are
  * computed correctly from a list of attendance records.
  */
-class GetSubjectStatsUseCaseTest {
+class GetCourseStatsUseCaseTest {
 
     private val repository: AttendanceRepository = mockk()
-    private val useCase = GetSubjectStatsUseCase(repository)
+    private val useCase = GetCourseStatsUseCase(repository)
 
-    /** Returns zero stats when no attendance records exist for the subject. */
+    /** Returns zero stats when no attendance records exist for the course. */
     @Test
     fun `returns zero stats when no records exist`() = runTest {
-        every { repository.getAttendanceForSubject(1L) } returns flowOf(emptyList())
-        val stats = useCase(buildSubject()).first()
+        every { repository.getAttendanceForCourse(1L) } returns flowOf(emptyList())
+        val stats = useCase(buildCourse()).first()
         assertEquals(0, stats.present)
         assertEquals(0, stats.absent)
         assertEquals(0f, stats.attendancePercentage)
@@ -47,8 +47,8 @@ class GetSubjectStatsUseCaseTest {
             record(AttendanceStatus.PRESENT),
             record(AttendanceStatus.HOLIDAY),
         )
-        every { repository.getAttendanceForSubject(1L) } returns flowOf(records)
-        val stats = useCase(buildSubject()).first()
+        every { repository.getAttendanceForCourse(1L) } returns flowOf(records)
+        val stats = useCase(buildCourse()).first()
         assertEquals(2, stats.present)
         assertEquals(0, stats.absent)
         assertEquals(1.0f, stats.attendancePercentage)
@@ -63,14 +63,14 @@ class GetSubjectStatsUseCaseTest {
             record(AttendanceStatus.PRESENT),
             record(AttendanceStatus.ABSENT),
         )
-        every { repository.getAttendanceForSubject(1L) } returns flowOf(records)
-        val stats = useCase(buildSubject()).first()
+        every { repository.getAttendanceForCourse(1L) } returns flowOf(records)
+        val stats = useCase(buildCourse()).first()
         assertEquals(0.5f, stats.attendancePercentage)
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private fun buildSubject() = Subject(
+    private fun buildCourse() = Course(
         id = 1L,
         name = "Math",
         code = "MA-101",
@@ -81,7 +81,7 @@ class GetSubjectStatsUseCaseTest {
     )
 
     private fun record(status: AttendanceStatus) = AttendanceRecord(
-        subjectId = 1L,
+        courseId = 1L,
         date = LocalDate.now(),
         status = status,
     )

@@ -3,7 +3,7 @@ package com.abrarshakhi.selfattention.presentation.features.timeline
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
-import com.abrarshakhi.selfattention.domain.usecase.subject.GetSubjectsUseCase
+import com.abrarshakhi.selfattention.domain.usecase.course.GetCoursesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TimelineViewModel @Inject constructor(
-    private val getSubjects: GetSubjectsUseCase,
+    private val getCourses: GetCoursesUseCase,
     private val attendanceRepository: AttendanceRepository,
 ) : ViewModel() {
 
@@ -34,22 +34,22 @@ class TimelineViewModel @Inject constructor(
             selectedDay
                 .flatMapLatest { date ->
                     combine(
-                        getSubjects(),
+                        getCourses(),
                         attendanceRepository.getAttendanceForDate(date),
-                    ) { subjects, records ->
-                        val recordsBySubject = records.associateBy { it.subjectId }
-                        val classes = subjects
+                    ) { courses, records ->
+                        val recordsByCourse = records.associateBy { it.courseId }
+                        val classes = courses
                             .filter { date.dayOfWeek in it.scheduleDays }
                             .sortedBy { it.classHour * 60 + it.classMinute }
-                            .map { subject ->
+                            .map { course ->
                                 ScheduledClass(
-                                    subject = subject,
+                                    course = course,
                                     date = date,
-                                    record = recordsBySubject[subject.id],
+                                    record = recordsByCourse[course.id],
                                 )
                             }
                         val counts = DayOfWeek.entries
-                            .associateWith { dow -> subjects.count { dow in it.scheduleDays } }
+                            .associateWith { dow -> courses.count { dow in it.scheduleDays } }
                             .filterValues { it > 0 }
                         Triple(date, classes, counts)
                     }

@@ -2,11 +2,11 @@ package com.abrarshakhi.selfattention.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.abrarshakhi.selfattention.domain.model.Subject
+import com.abrarshakhi.selfattention.domain.model.Course
 import java.time.DayOfWeek
 
-@Entity(tableName = "subjects")
-data class SubjectEntity(
+@Entity(tableName = "courses")
+data class CourseEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val code: String,
@@ -19,7 +19,7 @@ data class SubjectEntity(
     val createdAt: Long,
 )
 
-fun SubjectEntity.toDomain() = Subject(
+fun CourseEntity.toDomain() = Course(
     id = id,
     name = name,
     code = code,
@@ -32,7 +32,7 @@ fun SubjectEntity.toDomain() = Subject(
     createdAt = createdAt,
 )
 
-fun Subject.toEntity() = SubjectEntity(
+fun Course.toEntity() = CourseEntity(
     id = id,
     name = name,
     code = code,

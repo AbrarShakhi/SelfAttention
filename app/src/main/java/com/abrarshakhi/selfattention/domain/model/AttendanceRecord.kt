@@ -4,7 +4,7 @@ import java.time.LocalDate
 
 data class AttendanceRecord(
     val id: Long = 0,
-    val subjectId: Long,
+    val courseId: Long,
     val date: LocalDate,
     val status: AttendanceStatus,
 )

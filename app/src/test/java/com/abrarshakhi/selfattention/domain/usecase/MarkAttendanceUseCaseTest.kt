@@ -20,7 +20,7 @@ class MarkAttendanceUseCaseTest {
     private val repository: AttendanceRepository = mockk(relaxed = true)
     private val useCase = MarkAttendanceUseCase(repository)
 
-    private val subjectId = 1L
+    private val courseId = 1L
     private val date: LocalDate = LocalDate.of(2026, 5, 18)
 
     /**
@@ -29,8 +29,8 @@ class MarkAttendanceUseCaseTest {
      */
     @Test
     fun `marks attendance as PRESENT via repository`() = runTest {
-        useCase(subjectId, date, AttendanceStatus.PRESENT)
-        coVerify(exactly = 1) { repository.upsertRecord(subjectId, date, AttendanceStatus.PRESENT) }
+        useCase(courseId, date, AttendanceStatus.PRESENT)
+        coVerify(exactly = 1) { repository.upsertRecord(courseId, date, AttendanceStatus.PRESENT) }
     }
 
     /**
@@ -39,17 +39,17 @@ class MarkAttendanceUseCaseTest {
      */
     @Test
     fun `marks attendance as ABSENT via repository`() = runTest {
-        useCase(subjectId, date, AttendanceStatus.ABSENT)
-        coVerify(exactly = 1) { repository.upsertRecord(subjectId, date, AttendanceStatus.ABSENT) }
+        useCase(courseId, date, AttendanceStatus.ABSENT)
+        coVerify(exactly = 1) { repository.upsertRecord(courseId, date, AttendanceStatus.ABSENT) }
     }
 
     /**
      * Calling clear should call deleteRecord on the repository, removing any
-     * existing mark for the given subject and date.
+     * existing mark for the given course and date.
      */
     @Test
     fun `clear delegates to deleteRecord on repository`() = runTest {
-        useCase.clear(subjectId, date)
-        coVerify(exactly = 1) { repository.deleteRecord(subjectId, date) }
+        useCase.clear(courseId, date)
+        coVerify(exactly = 1) { repository.deleteRecord(courseId, date) }
     }
 }

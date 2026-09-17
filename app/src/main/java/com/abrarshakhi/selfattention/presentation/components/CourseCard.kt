@@ -28,8 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.abrarshakhi.selfattention.domain.model.Subject
-import com.abrarshakhi.selfattention.domain.model.SubjectStats
+import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.presentation.theme.AppTheme
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -38,9 +38,9 @@ import kotlin.math.roundToInt
 private const val AtRiskThreshold = 0.75f
 
 @Composable
-fun SubjectCard(
-    subject: Subject,
-    stats: SubjectStats?,
+fun CourseCard(
+    course: Course,
+    stats: CourseStats?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -54,14 +54,14 @@ fun SubjectCard(
     val animatedPct by animateFloatAsState(
         targetValue = target,
         animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
-        label = "subjectProgress",
+        label = "courseProgress",
     )
 
-    val meta = remember(subject, locale) {
-        val days = subject.scheduleDays.sorted()
+    val meta = remember(course, locale) {
+        val days = course.scheduleDays.sorted()
             .joinToString(" ") { it.getDisplayName(TextStyle.SHORT, locale) }
-        val time = subject.classTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-        listOf(subject.code, days, time).filter { it.isNotBlank() }.joinToString("  ·  ")
+        val time = course.classTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+        listOf(course.code, days, time).filter { it.isNotBlank() }.joinToString("  ·  ")
     }
 
     Card(
@@ -77,7 +77,7 @@ fun SubjectCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = subject.name, style = MaterialTheme.typography.titleMedium)
+                    Text(text = course.name, style = MaterialTheme.typography.titleMedium)
                     Text(
                         text = meta,
                         style = MaterialTheme.typography.bodySmall,

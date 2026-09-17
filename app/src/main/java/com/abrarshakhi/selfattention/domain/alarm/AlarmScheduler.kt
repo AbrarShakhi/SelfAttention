@@ -1,9 +1,9 @@
 package com.abrarshakhi.selfattention.domain.alarm
 
-import com.abrarshakhi.selfattention.domain.model.Subject
+import com.abrarshakhi.selfattention.domain.model.Course
 
 interface AlarmScheduler {
-    fun scheduleForSubject(subject: Subject)
-    fun cancelForSubject(subject: Subject)
-    fun rescheduleAll(subjects: List<Subject>)
+    fun scheduleForCourse(course: Course)
+    fun cancelForCourse(course: Course)
+    fun rescheduleAll(courses: List<Course>)
 }

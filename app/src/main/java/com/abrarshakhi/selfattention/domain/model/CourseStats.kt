@@ -1,7 +1,7 @@
 package com.abrarshakhi.selfattention.domain.model
 
-data class SubjectStats(
-    val subjectId: Long,
+data class CourseStats(
+    val courseId: Long,
     val totalScheduled: Int,
     val present: Int,
     val absent: Int,

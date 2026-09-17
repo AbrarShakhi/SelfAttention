@@ -1,7 +1,7 @@
 package com.abrarshakhi.selfattention.presentation.features.timeline
 
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
-import com.abrarshakhi.selfattention.domain.model.Subject
+import com.abrarshakhi.selfattention.domain.model.Course
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -17,7 +17,7 @@ data class TimelineUiState(
 }
 
 data class ScheduledClass(
-    val subject: Subject,
+    val course: Course,
     val date: LocalDate,
     val record: AttendanceRecord?,
 )

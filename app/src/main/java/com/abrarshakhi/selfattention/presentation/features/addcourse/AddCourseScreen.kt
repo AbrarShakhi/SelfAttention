@@ -94,7 +94,7 @@ fun AddCourseScreen(
                 SentenceText("I have")
                 SentenceField(
                     value = state.name,
-                    placeholder = "subject name",
+                    placeholder = "course name",
                     onValueChange = viewModel::onNameChange,
                     width = 168.dp,
                 )

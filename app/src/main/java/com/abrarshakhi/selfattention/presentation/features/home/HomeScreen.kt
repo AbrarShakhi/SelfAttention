@@ -39,7 +39,7 @@ import com.abrarshakhi.selfattention.domain.model.NextClass
 import com.abrarshakhi.selfattention.domain.model.OverallStats
 import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
-import com.abrarshakhi.selfattention.presentation.components.SubjectCard
+import com.abrarshakhi.selfattention.presentation.components.CourseCard
 import com.abrarshakhi.selfattention.presentation.theme.AppTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -79,20 +79,20 @@ fun HomeScreen(
                 }
             }
 
-            if (state.subjects.isEmpty()) {
+            if (state.courses.isEmpty()) {
                 item(key = "empty") { EmptyState() }
             } else {
-                item(key = "subjects-header") {
+                item(key = "courses-header") {
                     SectionLabel(
-                        text = "My subjects",
+                        text = "My courses",
                         modifier = Modifier.padding(start = 4.dp, top = 8.dp),
                     )
                 }
-                items(state.subjects, key = { it.id }) { subject ->
-                    SubjectCard(
-                        subject = subject,
-                        stats = state.statsMap[subject.id],
-                        onClick = { onCourseClick(subject.id) },
+                items(state.courses, key = { it.id }) { course ->
+                    CourseCard(
+                        course = course,
+                        stats = state.statsMap[course.id],
+                        onClick = { onCourseClick(course.id) },
                     )
                 }
             }
@@ -169,7 +169,7 @@ private fun NextClassCard(nextClass: NextClass) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Next class", style = MaterialTheme.typography.labelMedium)
                 Text(
-                    text = nextClass.subject.name,
+                    text = nextClass.course.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -225,7 +225,7 @@ private fun EmptyState() {
         }
         Spacer(Modifier.height(16.dp))
         Text(
-            text = "No subjects yet",
+            text = "No courses yet",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,

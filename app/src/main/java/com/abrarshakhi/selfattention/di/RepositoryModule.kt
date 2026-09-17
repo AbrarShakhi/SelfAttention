@@ -5,11 +5,11 @@ import android.content.Context
 import com.abrarshakhi.selfattention.data.alarm.AlarmSchedulerImpl
 import com.abrarshakhi.selfattention.data.repository.AttendanceRepositoryImpl
 import com.abrarshakhi.selfattention.data.repository.SettingsRepositoryImpl
-import com.abrarshakhi.selfattention.data.repository.SubjectRepositoryImpl
+import com.abrarshakhi.selfattention.data.repository.CourseRepositoryImpl
 import com.abrarshakhi.selfattention.domain.alarm.AlarmScheduler
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
 import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
-import com.abrarshakhi.selfattention.domain.repository.SubjectRepository
+import com.abrarshakhi.selfattention.domain.repository.CourseRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -24,7 +24,7 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindSubjectRepository(impl: SubjectRepositoryImpl): SubjectRepository
+    abstract fun bindCourseRepository(impl: CourseRepositoryImpl): CourseRepository
 
     @Binds
     @Singleton

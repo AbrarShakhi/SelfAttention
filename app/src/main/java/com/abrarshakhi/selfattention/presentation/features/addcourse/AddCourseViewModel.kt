@@ -2,8 +2,8 @@ package com.abrarshakhi.selfattention.presentation.features.addcourse
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.abrarshakhi.selfattention.domain.model.Subject
-import com.abrarshakhi.selfattention.domain.usecase.subject.AddSubjectUseCase
+import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.usecase.course.AddCourseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddCourseViewModel @Inject constructor(
-    private val addSubject: AddSubjectUseCase,
+    private val addCourse: AddCourseUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddCourseUiState())
@@ -47,8 +47,8 @@ class AddCourseViewModel @Inject constructor(
         _state.update { it.copy(isSaving = true) }
         viewModelScope.launch {
             try {
-                addSubject(
-                    Subject(
+                addCourse(
+                    Course(
                         name = s.name.trim(),
                         code = s.code.trim(),
                         scheduleDays = s.selectedDays.sortedBy { it.value },

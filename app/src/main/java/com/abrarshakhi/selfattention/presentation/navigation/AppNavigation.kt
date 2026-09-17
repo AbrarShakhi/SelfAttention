@@ -34,7 +34,7 @@ fun AppNavigation(
                 })
             }
             entry<AppRoute.CourseDetails> {
-                CourseDetailScreen(subjectId = it.courseId)
+                CourseDetailScreen(courseId = it.courseId)
             }
             entry<AppRoute.Timeline> {
                 TimelineScreen(onCourseClick = {

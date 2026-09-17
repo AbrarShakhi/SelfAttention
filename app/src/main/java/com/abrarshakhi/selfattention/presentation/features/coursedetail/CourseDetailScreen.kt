@@ -51,8 +51,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
-import com.abrarshakhi.selfattention.domain.model.Subject
-import com.abrarshakhi.selfattention.domain.model.SubjectStats
+import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
 import com.abrarshakhi.selfattention.presentation.theme.AppTheme
 import com.abrarshakhi.selfattention.presentation.theme.StatusColor
@@ -67,15 +67,15 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDetailScreen(
-    subjectId: Long,
+    courseId: Long,
     viewModel: CourseDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(subjectId) { viewModel.load(subjectId) }
+    LaunchedEffect(courseId) { viewModel.load(courseId) }
 
-    val subject = state.subject
-    if (subject == null) {
+    val course = state.course
+    if (course == null) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -89,8 +89,8 @@ fun CourseDetailScreen(
             modifier = Modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            SubjectHeader(
-                subject = subject,
+            CourseHeader(
+                course = course,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
             )
 
@@ -104,7 +104,7 @@ fun CourseDetailScreen(
 
             MonthCalendarCard(
                 month = state.currentMonth,
-                subject = subject,
+                course = course,
                 records = state.records,
                 onPrevMonth = viewModel::previousMonth,
                 onNextMonth = viewModel::nextMonth,
@@ -138,15 +138,15 @@ fun CourseDetailScreen(
 // ── header ───────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SubjectHeader(subject: Subject, modifier: Modifier = Modifier) {
+private fun CourseHeader(course: Course, modifier: Modifier = Modifier) {
     val locale = LocalLocale.current.platformLocale
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = subject.name, style = MaterialTheme.typography.headlineSmall)
-        val schedule = remember(subject, locale) {
-            val days = subject.scheduleDays.sorted()
+        Text(text = course.name, style = MaterialTheme.typography.headlineSmall)
+        val schedule = remember(course, locale) {
+            val days = course.scheduleDays.sorted()
                 .joinToString(" · ") { it.getDisplayName(TextStyle.SHORT, locale) }
-            val time = subject.classTime.format(DateTimeFormatter.ofPattern("HH:mm"))
-            listOf(subject.code, days, time).filter { it.isNotBlank() }.joinToString("  •  ")
+            val time = course.classTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+            listOf(course.code, days, time).filter { it.isNotBlank() }.joinToString("  •  ")
         }
         Text(
             text = schedule,
@@ -159,7 +159,7 @@ private fun SubjectHeader(subject: Subject, modifier: Modifier = Modifier) {
 // ── summary ──────────────────────────────────────────────────────────────────
 
 @Composable
-private fun AttendanceSummaryCard(stats: SubjectStats, modifier: Modifier = Modifier) {
+private fun AttendanceSummaryCard(stats: CourseStats, modifier: Modifier = Modifier) {
     val countable = stats.present + stats.absent
 
     Card(
@@ -198,7 +198,7 @@ private fun AttendanceSummaryCard(stats: SubjectStats, modifier: Modifier = Modi
 }
 
 @Composable
-private fun StatTiles(stats: SubjectStats, modifier: Modifier = Modifier) {
+private fun StatTiles(stats: CourseStats, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -240,7 +240,7 @@ private fun StatTile(
 @Composable
 private fun MonthCalendarCard(
     month: YearMonth,
-    subject: Subject,
+    course: Course,
     records: Map<LocalDate, AttendanceRecord>,
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
@@ -306,7 +306,7 @@ private fun MonthCalendarCard(
                             val date = month.atDay(dayNum)
                             CalendarDay(
                                 day = dayNum,
-                                isScheduled = date.dayOfWeek in subject.scheduleDays,
+                                isScheduled = date.dayOfWeek in course.scheduleDays,
                                 isToday = date == today,
                                 record = records[date],
                                 onClick = { onDayClick(date) },

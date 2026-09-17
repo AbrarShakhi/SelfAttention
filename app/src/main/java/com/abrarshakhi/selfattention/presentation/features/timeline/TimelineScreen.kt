@@ -99,10 +99,10 @@ fun TimelineScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(state.classesForDay, key = { it.subject.id }) { scheduled ->
+                    items(state.classesForDay, key = { it.course.id }) { scheduled ->
                         TimelineClassCard(
                             scheduled = scheduled,
-                            onClick = { onCourseClick(scheduled.subject.id) },
+                            onClick = { onCourseClick(scheduled.course.id) },
                         )
                     }
                 }
@@ -204,13 +204,13 @@ private fun EmptyDay(date: LocalDate, modifier: Modifier = Modifier) {
 
 @Composable
 private fun TimelineClassCard(scheduled: ScheduledClass, onClick: () -> Unit) {
-    val subject = scheduled.subject
+    val course = scheduled.course
     val status = scheduled.record?.status
     val family = status?.let { AppTheme.status.forStatus(it) }
     val accent = family?.color ?: MaterialTheme.colorScheme.outline
 
-    val start = subject.classTime
-    val end = remember(subject) { start.plusMinutes(subject.classDurationMinutes.toLong()) }
+    val start = course.classTime
+    val end = remember(course) { start.plusMinutes(course.classDurationMinutes.toLong()) }
     val timeFormat = remember { DateTimeFormatter.ofPattern("HH:mm") }
 
     Card(
@@ -254,10 +254,10 @@ private fun TimelineClassCard(scheduled: ScheduledClass, onClick: () -> Unit) {
             Spacer(Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = subject.name, style = MaterialTheme.typography.titleMedium)
-                if (subject.code.isNotBlank()) {
+                Text(text = course.name, style = MaterialTheme.typography.titleMedium)
+                if (course.code.isNotBlank()) {
                     Text(
-                        text = subject.code,
+                        text = course.code,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

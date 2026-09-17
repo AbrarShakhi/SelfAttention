@@ -3,7 +3,7 @@ package com.abrarshakhi.selfattention.domain.model
 import java.time.DayOfWeek
 import java.time.LocalTime
 
-data class Subject(
+data class Course(
     val id: Long = 0,
     val name: String,
     val code: String,

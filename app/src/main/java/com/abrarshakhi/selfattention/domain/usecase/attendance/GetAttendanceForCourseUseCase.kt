@@ -5,9 +5,9 @@ import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetAttendanceForSubjectUseCase @Inject constructor(
+class GetAttendanceForCourseUseCase @Inject constructor(
     private val repository: AttendanceRepository,
 ) {
-    operator fun invoke(subjectId: Long): Flow<List<AttendanceRecord>> =
-        repository.getAttendanceForSubject(subjectId)
+    operator fun invoke(courseId: Long): Flow<List<AttendanceRecord>> =
+        repository.getAttendanceForCourse(courseId)
 }

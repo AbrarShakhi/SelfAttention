@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 interface AttendanceRepository {
-    fun getAttendanceForSubject(subjectId: Long): Flow<List<AttendanceRecord>>
+    fun getAttendanceForCourse(courseId: Long): Flow<List<AttendanceRecord>>
     fun getAttendanceForDate(date: LocalDate): Flow<List<AttendanceRecord>>
     fun getAllAttendance(): Flow<List<AttendanceRecord>>
-    suspend fun getRecordForSubjectAndDate(subjectId: Long, date: LocalDate): AttendanceRecord?
-    suspend fun upsertRecord(subjectId: Long, date: LocalDate, status: AttendanceStatus)
-    suspend fun deleteRecord(subjectId: Long, date: LocalDate)
-    suspend fun deleteAllForSubject(subjectId: Long)
+    suspend fun getRecordForCourseAndDate(courseId: Long, date: LocalDate): AttendanceRecord?
+    suspend fun upsertRecord(courseId: Long, date: LocalDate, status: AttendanceStatus)
+    suspend fun deleteRecord(courseId: Long, date: LocalDate)
+    suspend fun deleteAllForCourse(courseId: Long)
 }

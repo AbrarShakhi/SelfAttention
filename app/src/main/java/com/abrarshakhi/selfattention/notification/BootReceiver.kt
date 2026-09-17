@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.abrarshakhi.selfattention.domain.alarm.AlarmScheduler
-import com.abrarshakhi.selfattention.domain.repository.SubjectRepository
+import com.abrarshakhi.selfattention.domain.repository.CourseRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var subjectRepository: SubjectRepository
+    @Inject lateinit var courseRepository: CourseRepository
     @Inject lateinit var alarmScheduler: AlarmScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -25,8 +25,8 @@ class BootReceiver : BroadcastReceiver() {
         val result = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val subjects = subjectRepository.getSubjects().first()
-                alarmScheduler.rescheduleAll(subjects)
+                val courses = courseRepository.getCourses().first()
+                alarmScheduler.rescheduleAll(courses)
             } finally {
                 result.finish()
             }

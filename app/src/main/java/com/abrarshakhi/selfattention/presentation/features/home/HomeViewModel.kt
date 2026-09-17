@@ -3,10 +3,10 @@ package com.abrarshakhi.selfattention.presentation.features.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abrarshakhi.selfattention.domain.model.OverallStats
-import com.abrarshakhi.selfattention.domain.model.SubjectStats
+import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCase
-import com.abrarshakhi.selfattention.domain.usecase.attendance.GetSubjectStatsUseCase
-import com.abrarshakhi.selfattention.domain.usecase.subject.GetSubjectsUseCase
+import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
+import com.abrarshakhi.selfattention.domain.usecase.course.GetCoursesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getSubjects: GetSubjectsUseCase,
-    private val getSubjectStats: GetSubjectStatsUseCase,
+    private val getCourses: GetCoursesUseCase,
+    private val getCourseStats: GetCourseStatsUseCase,
     private val getNextClass: GetNextClassUseCase,
 ) : ViewModel() {
 
@@ -35,15 +35,15 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
         viewModelScope.launch {
-            getSubjects().flatMapLatest { subjects ->
-                if (subjects.isEmpty()) {
+            getCourses().flatMapLatest { courses ->
+                if (courses.isEmpty()) {
                     flowOf(
-                        Triple(subjects, emptyMap<Long, SubjectStats>(), OverallStats(0, 0, 0f))
+                        Triple(courses, emptyMap<Long, CourseStats>(), OverallStats(0, 0, 0f))
                     )
                 } else {
-                    val statsFlows = subjects.map { s -> getSubjectStats(s) }
+                    val statsFlows = courses.map { s -> getCourseStats(s) }
                     combine(statsFlows) { statsArray ->
-                        val statsMap = statsArray.associateBy { it.subjectId }
+                        val statsMap = statsArray.associateBy { it.courseId }
                         val totalPresent = statsArray.sumOf { it.present }
                         val totalAbsent = statsArray.sumOf { it.absent }
                         val countable = totalPresent + totalAbsent
@@ -53,16 +53,16 @@ class HomeViewModel @Inject constructor(
                             attendancePercentage = if (countable == 0) 0f
                             else totalPresent.toFloat() / countable,
                         )
-                        Triple(subjects, statsMap, overall)
+                        Triple(courses, statsMap, overall)
                     }
                 }
-            }.collect { (subjects, statsMap, overall) ->
+            }.collect { (courses, statsMap, overall) ->
                 _state.update {
                     it.copy(
-                        subjects = subjects,
+                        courses = courses,
                         statsMap = statsMap,
                         overallStats = overall,
-                        nextClass = getNextClass(subjects),
+                        nextClass = getNextClass(courses),
                         isLoading = false,
                     )
                 }
