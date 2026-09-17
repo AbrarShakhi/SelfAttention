@@ -8,11 +8,11 @@ import javax.inject.Inject
 class MarkAttendanceUseCase @Inject constructor(
     private val repository: AttendanceRepository,
 ) {
-    suspend operator fun invoke(subjectId: Long, date: LocalDate, status: AttendanceStatus) {
-        repository.upsertRecord(subjectId, date, status)
+    suspend operator fun invoke(courseId: Long, date: LocalDate, status: AttendanceStatus) {
+        repository.upsertRecord(courseId, date, status)
     }
 
-    suspend fun clear(subjectId: Long, date: LocalDate) {
-        repository.deleteRecord(subjectId, date)
+    suspend fun clear(courseId: Long, date: LocalDate) {
+        repository.deleteRecord(courseId, date)
     }
 }

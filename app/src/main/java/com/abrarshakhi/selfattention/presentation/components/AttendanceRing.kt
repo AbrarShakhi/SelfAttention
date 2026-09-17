@@ -1,72 +1,85 @@
 package com.abrarshakhi.selfattention.presentation.components
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.abrarshakhi.selfattention.ui.theme.Ink3
-import com.abrarshakhi.selfattention.ui.theme.Present
-import kotlin.math.PI
+import com.abrarshakhi.selfattention.presentation.theme.AppTheme
+import kotlin.math.roundToInt
+
+private const val AtRiskThreshold = 0.75f
 
 @Composable
 fun AttendanceRing(
-    progress: Float,           // 0f..1f
-    size: Dp = 88.dp,
-    trackColor: Color = Ink3,
-    progressColor: Color = Present,
-    strokeWidth: Dp = 7.dp,
-    label: String = "overall",
+    progress: Float,
+    modifier: Modifier = Modifier,
+    size: Dp = 96.dp,
+    strokeWidth: Dp = 10.dp,
+    label: String? = null,
 ) {
-    Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(size)) {
-            val stroke = strokeWidth.toPx()
-            val inset = stroke / 2f
-            val arcSize = Size(this.size.width - stroke, this.size.height - stroke)
-            val topLeft = Offset(inset, inset)
-            // Track
-            drawArc(
-                color = trackColor,
-                startAngle = 0f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(stroke),
-            )
-            // Progress
-            drawArc(
-                color = progressColor,
-                startAngle = -90f,
-                sweepAngle = 360f * progress.coerceIn(0f, 1f),
-                useCenter = false,
-                topLeft = topLeft,
-                size = arcSize,
-                style = Stroke(stroke, cap = StrokeCap.Round),
-            )
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // Start at zero so the first frame animates in; targetValue == initial would render statically.
+    var target by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(progress) { target = progress.coerceIn(0f, 1f) }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = target,
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "attendanceSweep",
+    )
+    val ringColor by animateColorAsState(
+        targetValue = if (target < AtRiskThreshold) {
+            AppTheme.status.absent.color
+        } else {
+            AppTheme.status.present.color
+        },
+        animationSpec = tween(durationMillis = 600),
+        label = "attendanceColor",
+    )
+
+    val percent = (animatedProgress * 100).roundToInt()
+
+    Box(
+        modifier = modifier.size(size),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(
+            progress = { animatedProgress },
+            modifier = Modifier.size(size),
+            color = ringColor,
+            strokeWidth = strokeWidth,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            strokeCap = StrokeCap.Round,
+        )
+        // The indicator already reports progress to accessibility services; don't say it twice.
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.clearAndSetSemantics { },
+        ) {
             Text(
-                text = "${(progress * 100).toInt()}%",
-                fontFamily = com.abrarshakhi.selfattention.ui.theme.CaveatFamily,
+                text = "$percent%",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                fontSize = (size.value * 0.27f).sp,
-                color = MaterialTheme.colorScheme.onSurface,
             )
-            if (label.isNotEmpty()) {
+            if (label != null) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,

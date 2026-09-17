@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.abrarshakhi.selfattention.domain.alarm.AlarmScheduler
-import com.abrarshakhi.selfattention.domain.model.Subject
+import com.abrarshakhi.selfattention.domain.model.Course
 import com.abrarshakhi.selfattention.notification.AlarmReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.DayOfWeek
@@ -22,42 +22,42 @@ class AlarmSchedulerImpl @Inject constructor(
 ) : AlarmScheduler {
 
     companion object {
-        const val EXTRA_SUBJECT_ID = "subject_id"
+        const val EXTRA_COURSE_ID = "course_id"
         const val EXTRA_ALARM_TYPE = "alarm_type"
         const val ALARM_TYPE_PRE_CLASS = 0
         const val ALARM_TYPE_POST_CLASS = 1
     }
 
-    override fun scheduleForSubject(subject: Subject) {
-        if (subject.hasReminder) {
-            subject.scheduleDays.forEach { day ->
-                scheduleNext(subject, day, ALARM_TYPE_PRE_CLASS)
+    override fun scheduleForCourse(course: Course) {
+        if (course.hasReminder) {
+            course.scheduleDays.forEach { day ->
+                scheduleNext(course, day, ALARM_TYPE_PRE_CLASS)
             }
         }
-        subject.scheduleDays.forEach { day ->
-            scheduleNext(subject, day, ALARM_TYPE_POST_CLASS)
+        course.scheduleDays.forEach { day ->
+            scheduleNext(course, day, ALARM_TYPE_POST_CLASS)
         }
     }
 
-    override fun cancelForSubject(subject: Subject) {
-        subject.scheduleDays.forEach { day ->
-            cancel(subject.id, day, ALARM_TYPE_PRE_CLASS)
-            cancel(subject.id, day, ALARM_TYPE_POST_CLASS)
+    override fun cancelForCourse(course: Course) {
+        course.scheduleDays.forEach { day ->
+            cancel(course.id, day, ALARM_TYPE_PRE_CLASS)
+            cancel(course.id, day, ALARM_TYPE_POST_CLASS)
         }
     }
 
-    override fun rescheduleAll(subjects: List<Subject>) {
-        subjects.forEach { scheduleForSubject(it) }
+    override fun rescheduleAll(courses: List<Course>) {
+        courses.forEach { scheduleForCourse(it) }
     }
 
-    fun scheduleNext(subject: Subject, dayOfWeek: DayOfWeek, alarmType: Int) {
+    fun scheduleNext(course: Course, dayOfWeek: DayOfWeek, alarmType: Int) {
         if (!canScheduleExact()) return
 
         val now = LocalDateTime.now()
-        val classTime = LocalTime.of(subject.classHour, subject.classMinute)
+        val classTime = LocalTime.of(course.classHour, course.classMinute)
         val triggerTime = when (alarmType) {
-            ALARM_TYPE_PRE_CLASS -> classTime.minusMinutes(subject.reminderMinutesBefore.toLong())
-            else -> classTime.plusMinutes(subject.classDurationMinutes.toLong())
+            ALARM_TYPE_PRE_CLASS -> classTime.minusMinutes(course.reminderMinutesBefore.toLong())
+            else -> classTime.plusMinutes(course.classDurationMinutes.toLong())
         }
 
         val nextOccurrence = findNextOccurrence(dayOfWeek, triggerTime, now)
@@ -69,12 +69,12 @@ class AlarmSchedulerImpl @Inject constructor(
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             epochMillis,
-            buildPendingIntent(subject.id, dayOfWeek, alarmType),
+            buildPendingIntent(course.id, dayOfWeek, alarmType),
         )
     }
 
-    private fun cancel(subjectId: Long, dayOfWeek: DayOfWeek, alarmType: Int) {
-        alarmManager.cancel(buildPendingIntent(subjectId, dayOfWeek, alarmType))
+    private fun cancel(courseId: Long, dayOfWeek: DayOfWeek, alarmType: Int) {
+        alarmManager.cancel(buildPendingIntent(courseId, dayOfWeek, alarmType))
     }
 
     private fun findNextOccurrence(
@@ -97,13 +97,13 @@ class AlarmSchedulerImpl @Inject constructor(
     }
 
     private fun buildPendingIntent(
-        subjectId: Long,
+        courseId: Long,
         dayOfWeek: DayOfWeek,
         alarmType: Int,
     ): PendingIntent {
-        val requestCode = ((subjectId * 14) + (dayOfWeek.value * 2) + alarmType).toInt()
+        val requestCode = ((courseId * 14) + (dayOfWeek.value * 2) + alarmType).toInt()
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra(EXTRA_SUBJECT_ID, subjectId)
+            putExtra(EXTRA_COURSE_ID, courseId)
             putExtra(EXTRA_ALARM_TYPE, alarmType)
         }
         return PendingIntent.getBroadcast(

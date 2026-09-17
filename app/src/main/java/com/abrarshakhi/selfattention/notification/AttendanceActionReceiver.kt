@@ -18,24 +18,24 @@ class AttendanceActionReceiver : BroadcastReceiver() {
     @Inject lateinit var attendanceRepository: AttendanceRepository
 
     companion object {
-        const val EXTRA_SUBJECT_ID = "subject_id"
+        const val EXTRA_COURSE_ID = "course_id"
         const val EXTRA_EPOCH_DAY = "epoch_day"
         const val EXTRA_STATUS = "status"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val subjectId = intent.getLongExtra(EXTRA_SUBJECT_ID, -1L)
+        val courseId = intent.getLongExtra(EXTRA_COURSE_ID, -1L)
         val epochDay = intent.getLongExtra(EXTRA_EPOCH_DAY, -1L)
         val statusName = intent.getStringExtra(EXTRA_STATUS) ?: return
-        if (subjectId == -1L || epochDay == -1L) return
+        if (courseId == -1L || epochDay == -1L) return
 
         val result = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val status = AttendanceStatus.valueOf(statusName)
                 val date = LocalDate.ofEpochDay(epochDay)
-                attendanceRepository.upsertRecord(subjectId, date, status)
-                NotificationHelper.cancelMarkAttendancePrompt(context, subjectId)
+                attendanceRepository.upsertRecord(courseId, date, status)
+                NotificationHelper.cancelMarkAttendancePrompt(context, courseId)
             } finally {
                 result.finish()
             }

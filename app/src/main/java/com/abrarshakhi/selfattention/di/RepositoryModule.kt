@@ -3,13 +3,15 @@ package com.abrarshakhi.selfattention.di
 import android.app.AlarmManager
 import android.content.Context
 import com.abrarshakhi.selfattention.data.alarm.AlarmSchedulerImpl
+import com.abrarshakhi.selfattention.data.backup.JsonBackupCodec
 import com.abrarshakhi.selfattention.data.repository.AttendanceRepositoryImpl
 import com.abrarshakhi.selfattention.data.repository.SettingsRepositoryImpl
-import com.abrarshakhi.selfattention.data.repository.SubjectRepositoryImpl
+import com.abrarshakhi.selfattention.data.repository.CourseRepositoryImpl
 import com.abrarshakhi.selfattention.domain.alarm.AlarmScheduler
+import com.abrarshakhi.selfattention.domain.backup.BackupCodec
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
 import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
-import com.abrarshakhi.selfattention.domain.repository.SubjectRepository
+import com.abrarshakhi.selfattention.domain.repository.CourseRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -22,17 +24,25 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds @Singleton
-    abstract fun bindSubjectRepository(impl: SubjectRepositoryImpl): SubjectRepository
+    @Binds
+    @Singleton
+    abstract fun bindCourseRepository(impl: CourseRepositoryImpl): CourseRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindAttendanceRepository(impl: AttendanceRepositoryImpl): AttendanceRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 
-    @Binds @Singleton
+    @Binds
+    @Singleton
     abstract fun bindAlarmScheduler(impl: AlarmSchedulerImpl): AlarmScheduler
+
+    @Binds
+    @Singleton
+    abstract fun bindBackupCodec(impl: JsonBackupCodec): BackupCodec
 }
 
 @Module

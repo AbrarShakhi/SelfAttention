@@ -1,13 +1,14 @@
 package com.abrarshakhi.selfattention.presentation
 
 import app.cash.turbine.test
-import com.abrarshakhi.selfattention.domain.model.Subject
-import com.abrarshakhi.selfattention.domain.model.SubjectStats
+import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.model.CourseStats
+import com.abrarshakhi.selfattention.domain.model.AppSettings
+import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCase
-import com.abrarshakhi.selfattention.domain.usecase.attendance.GetSubjectStatsUseCase
-import com.abrarshakhi.selfattention.domain.usecase.subject.GetSubjectsUseCase
-import com.abrarshakhi.selfattention.presentation.home.HomeViewModel
-import io.mockk.any
+import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
+import com.abrarshakhi.selfattention.domain.usecase.course.GetCoursesUseCase
+import com.abrarshakhi.selfattention.presentation.features.home.HomeViewModel
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -34,9 +35,12 @@ import java.time.DayOfWeek
 class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val getSubjects: GetSubjectsUseCase = mockk()
-    private val getSubjectStats: GetSubjectStatsUseCase = mockk()
+    private val getCourses: GetCoursesUseCase = mockk()
+    private val getCourseStats: GetCourseStatsUseCase = mockk()
     private val getNextClass = GetNextClassUseCase()
+    private val settingsRepository: SettingsRepository = mockk {
+        every { getSettings() } returns flowOf(AppSettings())
+    }
 
     @Before
     fun setUp() {
@@ -49,13 +53,13 @@ class HomeViewModelTest {
     }
 
     /**
-     * Initial isLoading should be true; after subjects are emitted it should
+     * Initial isLoading should be true; after courses are emitted it should
      * become false.
      */
     @Test
-    fun `isLoading becomes false after subjects are emitted`() = runTest {
-        every { getSubjects() } returns flowOf(emptyList())
-        val viewModel = HomeViewModel(getSubjects, getSubjectStats, getNextClass)
+    fun `isLoading becomes false after courses are emitted`() = runTest {
+        every { getCourses() } returns flowOf(emptyList())
+        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass, settingsRepository)
 
         viewModel.state.test {
             val initial = awaitItem()
@@ -67,33 +71,33 @@ class HomeViewModelTest {
     }
 
     /**
-     * When subjects are emitted, the subjects list in state should match.
+     * When courses are emitted, the courses list in state should match.
      */
     @Test
-    fun `subjects list is populated from use case`() = runTest {
-        val subjects = listOf(buildSubject(1L, "Maths"), buildSubject(2L, "Physics"))
-        every { getSubjects() } returns flowOf(subjects)
-        every { getSubjectStats(any()) } returns flowOf(buildStats())
+    fun `courses list is populated from use case`() = runTest {
+        val courses = listOf(buildCourse(1L, "Maths"), buildCourse(2L, "Physics"))
+        every { getCourses() } returns flowOf(courses)
+        every { getCourseStats(any()) } returns flowOf(buildStats())
 
-        val viewModel = HomeViewModel(getSubjects, getSubjectStats, getNextClass)
+        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass, settingsRepository)
 
         viewModel.state.test {
             skipItems(1) // loading state
             val loaded = awaitItem()
-            assert(loaded.subjects.size == 2)
+            assert(loaded.courses.size == 2)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private fun buildSubject(id: Long = 1L, name: String = "Test") = Subject(
+    private fun buildCourse(id: Long = 1L, name: String = "Test") = Course(
         id = id, name = name, code = "T-101",
         scheduleDays = listOf(DayOfWeek.MONDAY),
         classHour = 10, classMinute = 0,
     )
 
-    private fun buildStats(id: Long = 1L) = SubjectStats(
-        subjectId = id, totalScheduled = 0, present = 0, absent = 0, holiday = 0,
+    private fun buildStats(id: Long = 1L) = CourseStats(
+        courseId = id, totalScheduled = 0, present = 0, absent = 0, holiday = 0,
     )
 }

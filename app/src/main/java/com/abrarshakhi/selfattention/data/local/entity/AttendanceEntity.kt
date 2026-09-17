@@ -5,21 +5,21 @@ import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import java.time.LocalDate
 
-@Entity(tableName = "attendance", primaryKeys = ["subjectId", "epochDay"])
+@Entity(tableName = "attendance", primaryKeys = ["courseId", "epochDay"])
 data class AttendanceEntity(
-    val subjectId: Long,
+    val courseId: Long,
     val epochDay: Long,
     val status: String,
 )
 
 fun AttendanceEntity.toDomain() = AttendanceRecord(
-    subjectId = subjectId,
+    courseId = courseId,
     date = LocalDate.ofEpochDay(epochDay),
     status = AttendanceStatus.valueOf(status),
 )
 
 fun AttendanceRecord.toEntity() = AttendanceEntity(
-    subjectId = subjectId,
+    courseId = courseId,
     epochDay = date.toEpochDay(),
     status = status.name,
 )

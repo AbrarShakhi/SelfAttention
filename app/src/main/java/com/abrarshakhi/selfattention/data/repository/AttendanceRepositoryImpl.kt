@@ -15,8 +15,8 @@ class AttendanceRepositoryImpl @Inject constructor(
     private val dao: AttendanceDao,
 ) : AttendanceRepository {
 
-    override fun getAttendanceForSubject(subjectId: Long): Flow<List<AttendanceRecord>> =
-        dao.getForSubject(subjectId).map { list -> list.map { it.toDomain() } }
+    override fun getAttendanceForCourse(courseId: Long): Flow<List<AttendanceRecord>> =
+        dao.getForCourse(courseId).map { list -> list.map { it.toDomain() } }
 
     override fun getAttendanceForDate(date: LocalDate): Flow<List<AttendanceRecord>> =
         dao.getForDate(date.toEpochDay()).map { list -> list.map { it.toDomain() } }
@@ -24,18 +24,18 @@ class AttendanceRepositoryImpl @Inject constructor(
     override fun getAllAttendance(): Flow<List<AttendanceRecord>> =
         dao.getAll().map { list -> list.map { it.toDomain() } }
 
-    override suspend fun getRecordForSubjectAndDate(subjectId: Long, date: LocalDate): AttendanceRecord? =
-        dao.getRecord(subjectId, date.toEpochDay())?.toDomain()
+    override suspend fun getRecordForCourseAndDate(courseId: Long, date: LocalDate): AttendanceRecord? =
+        dao.getRecord(courseId, date.toEpochDay())?.toDomain()
 
-    override suspend fun upsertRecord(subjectId: Long, date: LocalDate, status: AttendanceStatus) {
-        dao.upsert(AttendanceEntity(subjectId, date.toEpochDay(), status.name))
+    override suspend fun upsertRecord(courseId: Long, date: LocalDate, status: AttendanceStatus) {
+        dao.upsert(AttendanceEntity(courseId, date.toEpochDay(), status.name))
     }
 
-    override suspend fun deleteRecord(subjectId: Long, date: LocalDate) {
-        dao.delete(subjectId, date.toEpochDay())
+    override suspend fun deleteRecord(courseId: Long, date: LocalDate) {
+        dao.delete(courseId, date.toEpochDay())
     }
 
-    override suspend fun deleteAllForSubject(subjectId: Long) {
-        dao.deleteAllForSubject(subjectId)
+    override suspend fun deleteAllForCourse(courseId: Long) {
+        dao.deleteAllForCourse(courseId)
     }
 }
