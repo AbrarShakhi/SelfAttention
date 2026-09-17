@@ -9,7 +9,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -18,13 +17,14 @@ import com.abrarshakhi.selfattention.presentation.navigation.AppNavigation
 import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
 import com.abrarshakhi.selfattention.presentation.navigation.BottomNavBar
 import com.abrarshakhi.selfattention.presentation.navigation.currentRoute
+import com.abrarshakhi.selfattention.presentation.navigation.rememberAppBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppRoot(
     settingsViewModel: SettingsViewModel
 ) {
-    val backStack = remember { mutableStateListOf<AppRoute>(AppRoute.Home) }
+    val backStack = rememberAppBackStack()
     val current = backStack.currentRoute()
     val currentChrome = current?.chrome()
 

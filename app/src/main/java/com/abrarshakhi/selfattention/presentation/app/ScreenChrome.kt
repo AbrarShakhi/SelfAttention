@@ -28,6 +28,7 @@ data class ScreenChrome(
     val bottomBarKey: BottomKey? = null
 )
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppRoute.chrome(): ScreenChrome = when (this) {
     is AppRoute.Home -> ScreenChrome(
@@ -102,5 +103,4 @@ fun AppRoute.chrome(): ScreenChrome = when (this) {
         bottomBarKey = null
     )
 
-    else -> throw IllegalStateException()
 }
