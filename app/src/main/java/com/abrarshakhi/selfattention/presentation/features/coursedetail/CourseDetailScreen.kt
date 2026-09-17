@@ -52,8 +52,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.model.meetsOn
 import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
+import com.abrarshakhi.selfattention.presentation.components.leadingBlankCount
+import com.abrarshakhi.selfattention.presentation.components.weekdayOrder
 import com.abrarshakhi.selfattention.presentation.theme.AppTheme
 import com.abrarshakhi.selfattention.presentation.theme.StatusColor
 import com.abrarshakhi.selfattention.presentation.theme.forStatus
@@ -105,6 +108,8 @@ fun CourseDetailScreen(
             MonthCalendarCard(
                 month = state.currentMonth,
                 course = course,
+                weekStart = state.weekStartDay,
+                weeklyHolidays = state.weeklyHolidays,
                 records = state.records,
                 onPrevMonth = viewModel::previousMonth,
                 onNextMonth = viewModel::nextMonth,
@@ -241,6 +246,8 @@ private fun StatTile(
 private fun MonthCalendarCard(
     month: YearMonth,
     course: Course,
+    weekStart: DayOfWeek,
+    weeklyHolidays: Set<DayOfWeek>,
     records: Map<LocalDate, AttendanceRecord>,
     onPrevMonth: () -> Unit,
     onNextMonth: () -> Unit,
@@ -279,7 +286,7 @@ private fun MonthCalendarCard(
             }
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                DayOfWeek.entries.forEach { dow ->
+                weekdayOrder(weekStart).forEach { dow ->
                     Text(
                         text = dow.getDisplayName(TextStyle.NARROW, locale),
                         modifier = Modifier.weight(1f),
@@ -306,7 +313,7 @@ private fun MonthCalendarCard(
                             val date = month.atDay(dayNum)
                             CalendarDay(
                                 day = dayNum,
-                                isScheduled = date.dayOfWeek in course.scheduleDays,
+                                isScheduled = course.meetsOn(date, weeklyHolidays),
                                 isToday = date == today,
                                 record = records[date],
                                 onClick = { onDayClick(date) },

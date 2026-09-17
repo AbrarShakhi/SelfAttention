@@ -20,6 +20,9 @@ sealed interface AppRoute : NavKey {
 
     @Serializable
     data class CourseDetails(val courseId: Long) : AppRoute
+
+    @Serializable
+    data class CourseEditor(val courseId: Long) : AppRoute
 }
 
 

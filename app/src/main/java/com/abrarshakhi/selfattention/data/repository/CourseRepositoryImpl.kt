@@ -22,6 +22,9 @@ class CourseRepositoryImpl @Inject constructor(
     override suspend fun insertCourse(course: Course): Long =
         dao.insert(course.toEntity())
 
+    override suspend fun updateCourse(course: Course) =
+        dao.update(course.toEntity())
+
     override suspend fun deleteCourse(course: Course) =
         dao.delete(course.toEntity())
 }

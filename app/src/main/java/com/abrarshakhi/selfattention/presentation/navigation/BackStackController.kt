@@ -15,8 +15,12 @@ fun <T> SnapshotStateList<T>.switchTapTo(destination: T) {
     this.add(destination)
 }
 
+/**
+ * Pops the top route, refusing to empty the stack — `NavDisplay` requires at least one entry
+ * (`require(backStack.isNotEmpty())`) and throws otherwise.
+ */
 fun <T> SnapshotStateList<T>.back() {
-    this.removeLastOrNull()
+    if (size > 1) removeLastOrNull()
 }
 
 fun <T> SnapshotStateList<T>.navigateTo(destination: T) = this.add(destination)

@@ -3,6 +3,8 @@ package com.abrarshakhi.selfattention.presentation.features.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abrarshakhi.selfattention.domain.model.OverallStats
+import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
+import com.abrarshakhi.selfattention.domain.model.Course
 import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCase
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +26,7 @@ class HomeViewModel @Inject constructor(
     private val getCourses: GetCoursesUseCase,
     private val getCourseStats: GetCourseStatsUseCase,
     private val getNextClass: GetNextClassUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -35,10 +39,12 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeData() {
         viewModelScope.launch {
-            getCourses().flatMapLatest { courses ->
+            combine(getCourses(), settingsRepository.getSettings()) { courses, settings ->
+                courses to settings.weeklyHolidays
+            }.flatMapLatest { (courses, holidays) ->
                 if (courses.isEmpty()) {
                     flowOf(
-                        Triple(courses, emptyMap<Long, CourseStats>(), OverallStats(0, 0, 0f))
+                        HomeLoad(courses, emptyMap(), OverallStats(0, 0, 0f), holidays)
                     )
                 } else {
                     val statsFlows = courses.map { s -> getCourseStats(s) }
@@ -53,20 +59,27 @@ class HomeViewModel @Inject constructor(
                             attendancePercentage = if (countable == 0) 0f
                             else totalPresent.toFloat() / countable,
                         )
-                        Triple(courses, statsMap, overall)
+                        HomeLoad(courses, statsMap, overall, holidays)
                     }
                 }
-            }.collect { (courses, statsMap, overall) ->
+            }.collect { load ->
                 _state.update {
                     it.copy(
-                        courses = courses,
-                        statsMap = statsMap,
-                        overallStats = overall,
-                        nextClass = getNextClass(courses),
+                        courses = load.courses,
+                        statsMap = load.stats,
+                        overallStats = load.overall,
+                        nextClass = getNextClass(load.courses, load.holidays),
                         isLoading = false,
                     )
                 }
             }
         }
     }
+
+    private data class HomeLoad(
+        val courses: List<Course>,
+        val stats: Map<Long, CourseStats>,
+        val overall: OverallStats,
+        val holidays: Set<DayOfWeek>,
+    )
 }

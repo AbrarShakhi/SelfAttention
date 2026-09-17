@@ -3,6 +3,7 @@ package com.abrarshakhi.selfattention.presentation.app
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -88,16 +89,45 @@ fun AppRoute.chrome(): ScreenChrome = when (this) {
         bottomBarKey = null
     )
 
-    is AppRoute.CourseDetails -> ScreenChrome(
-        title = "Course Details",
+    is AppRoute.CourseDetails -> {
+        val courseId = this.courseId
+        ScreenChrome(
+            title = "Course Details",
+            topBar = { backstack, scrollBehavior ->
+                TopAppBar(
+                    title = { Text(text = "Course") },
+                    navigationIcon = {
+                        IconButton(onClick = { backstack.back() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            backstack.navigateTo(AppRoute.CourseEditor(courseId))
+                        }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit course")
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                )
+            },
+            fab = {},
+            bottomBarKey = null
+        )
+    }
+
+    is AppRoute.CourseEditor -> ScreenChrome(
+        title = "Edit course",
         topBar = { backstack, scrollBehavior ->
-            TopAppBar(title = {
-                Text(text = "Course")
-            }, navigationIcon = {
-                IconButton(onClick = { backstack.back() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                }
-            }, scrollBehavior = scrollBehavior)
+            TopAppBar(
+                title = { Text(text = "Edit course") },
+                navigationIcon = {
+                    IconButton(onClick = { backstack.back() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
         },
         fab = {},
         bottomBarKey = null

@@ -1,6 +1,7 @@
 package com.abrarshakhi.selfattention.domain.model
 
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 
 data class Course(
@@ -17,3 +18,13 @@ data class Course(
 ) {
     val classTime: LocalTime get() = LocalTime.of(classHour, classMinute)
 }
+
+/**
+ * Whether this course actually meets on [date].
+ *
+ * A weekly holiday means no classes happen that weekday at all, so it overrides the schedule.
+ * This only affects days the course *would* meet from now on — attendance already recorded on a
+ * weekday later marked a holiday is history and still counts.
+ */
+fun Course.meetsOn(date: LocalDate, weeklyHolidays: Set<DayOfWeek>): Boolean =
+    date.dayOfWeek in scheduleDays && date.dayOfWeek !in weeklyHolidays

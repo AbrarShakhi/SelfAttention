@@ -2,7 +2,10 @@ package com.abrarshakhi.selfattention.presentation.features.timeline
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.abrarshakhi.selfattention.domain.model.AppSettings
+import com.abrarshakhi.selfattention.domain.model.meetsOn
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
+import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import com.abrarshakhi.selfattention.domain.usecase.course.GetCoursesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +25,7 @@ import javax.inject.Inject
 class TimelineViewModel @Inject constructor(
     private val getCourses: GetCoursesUseCase,
     private val attendanceRepository: AttendanceRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TimelineUiState())
@@ -36,10 +40,11 @@ class TimelineViewModel @Inject constructor(
                     combine(
                         getCourses(),
                         attendanceRepository.getAttendanceForDate(date),
-                    ) { courses, records ->
+                        settingsRepository.getSettings(),
+                    ) { courses, records, settings ->
                         val recordsByCourse = records.associateBy { it.courseId }
                         val classes = courses
-                            .filter { date.dayOfWeek in it.scheduleDays }
+                            .filter { it.meetsOn(date, settings.weeklyHolidays) }
                             .sortedBy { it.classHour * 60 + it.classMinute }
                             .map { course ->
                                 ScheduledClass(
@@ -51,15 +56,17 @@ class TimelineViewModel @Inject constructor(
                         val counts = DayOfWeek.entries
                             .associateWith { dow -> courses.count { dow in it.scheduleDays } }
                             .filterValues { it > 0 }
-                        Triple(date, classes, counts)
+                        DayLoad(date, classes, counts, settings)
                     }
                 }
-                .collect { (date, classes, counts) ->
+                .collect { load ->
                     _state.update {
                         it.copy(
-                            selectedDay = date,
-                            classesForDay = classes,
-                            classCountByWeekday = counts,
+                            selectedDay = load.date,
+                            classesForDay = load.classes,
+                            classCountByWeekday = load.counts,
+                            weekStartDay = load.settings.weekStartDay,
+                            weeklyHolidays = load.settings.weeklyHolidays,
                             isLoading = false,
                         )
                     }
@@ -79,4 +86,11 @@ class TimelineViewModel @Inject constructor(
         _state.update { it.copy(visibleMonth = it.visibleMonth.plusMonths(1)) }
 
     fun showToday() = selectDay(LocalDate.now())
+
+    private data class DayLoad(
+        val date: LocalDate,
+        val classes: List<ScheduledClass>,
+        val counts: Map<DayOfWeek, Int>,
+        val settings: AppSettings,
+    )
 }

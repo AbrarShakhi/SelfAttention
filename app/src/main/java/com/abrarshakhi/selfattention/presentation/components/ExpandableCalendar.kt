@@ -54,6 +54,7 @@ import java.time.format.TextStyle
 fun ExpandableCalendar(
     selectedDate: LocalDate,
     visibleMonth: YearMonth,
+    weekStart: DayOfWeek,
     expanded: Boolean,
     classCountOn: (LocalDate) -> Int,
     onDateSelected: (LocalDate) -> Unit,
@@ -94,7 +95,7 @@ fun ExpandableCalendar(
 
         // Weekday labels stay put across both modes so the columns never shift.
         Row(modifier = Modifier.fillMaxWidth()) {
-            DayOfWeek.entries.forEach { dow ->
+            weekdayOrder(weekStart).forEach { dow ->
                 Text(
                     text = dow.getDisplayName(TextStyle.NARROW, locale),
                     modifier = Modifier.weight(1f),
@@ -114,6 +115,7 @@ fun ExpandableCalendar(
         ) {
             MonthGrid(
                 month = visibleMonth,
+                weekStart = weekStart,
                 selectedDate = selectedDate,
                 today = today,
                 classCountOn = classCountOn,
@@ -127,6 +129,7 @@ fun ExpandableCalendar(
             exit = shrinkVertically(tween(250), shrinkTowards = Alignment.Top) + fadeOut(tween(150)),
         ) {
             WeekRow(
+                weekStart = weekStart,
                 selectedDate = selectedDate,
                 today = today,
                 classCountOn = classCountOn,
@@ -140,15 +143,16 @@ fun ExpandableCalendar(
 
 @Composable
 private fun WeekRow(
+    weekStart: DayOfWeek,
     selectedDate: LocalDate,
     today: LocalDate,
     classCountOn: (LocalDate) -> Int,
     onDateSelected: (LocalDate) -> Unit,
 ) {
-    val weekStart = remember(selectedDate) { selectedDate.with(DayOfWeek.MONDAY) }
+    val firstDay = remember(selectedDate, weekStart) { selectedDate.startOfWeek(weekStart) }
     Row(modifier = Modifier.fillMaxWidth()) {
         repeat(7) { index ->
-            val date = weekStart.plusDays(index.toLong())
+            val date = firstDay.plusDays(index.toLong())
             DayCell(
                 date = date,
                 isSelected = date == selectedDate,
@@ -165,13 +169,14 @@ private fun WeekRow(
 @Composable
 private fun MonthGrid(
     month: YearMonth,
+    weekStart: DayOfWeek,
     selectedDate: LocalDate,
     today: LocalDate,
     classCountOn: (LocalDate) -> Int,
     onDateSelected: (LocalDate) -> Unit,
 ) {
     val firstOfMonth = month.atDay(1)
-    val leadingBlanks = firstOfMonth.dayOfWeek.value - 1 // Monday = 0
+    val leadingBlanks = leadingBlankCount(firstOfMonth, weekStart)
     val gridStart = firstOfMonth.minusDays(leadingBlanks.toLong())
     val rows = (leadingBlanks + month.lengthOfMonth() + 6) / 7
 

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.abrarshakhi.selfattention.data.local.entity.CourseEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +19,9 @@ interface CourseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(course: CourseEntity): Long
+
+    @Update
+    suspend fun update(course: CourseEntity)
 
     @Delete
     suspend fun delete(course: CourseEntity)

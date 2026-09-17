@@ -3,7 +3,9 @@ package com.abrarshakhi.selfattention.domain.usecase
 import com.abrarshakhi.selfattention.domain.model.AttendanceRecord
 import com.abrarshakhi.selfattention.domain.model.AttendanceStatus
 import com.abrarshakhi.selfattention.domain.model.Course
+import com.abrarshakhi.selfattention.domain.model.AppSettings
 import com.abrarshakhi.selfattention.domain.repository.AttendanceRepository
+import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -24,7 +26,12 @@ import java.time.LocalDate
 class GetCourseStatsUseCaseTest {
 
     private val repository: AttendanceRepository = mockk()
-    private val useCase = GetCourseStatsUseCase(repository)
+
+    // No weekly holidays by default, so the scheduled window is the course's own days.
+    private val settingsRepository: SettingsRepository = mockk {
+        every { getSettings() } returns flowOf(AppSettings())
+    }
+    private val useCase = GetCourseStatsUseCase(repository, settingsRepository)
 
     /** Returns zero stats when no attendance records exist for the course. */
     @Test

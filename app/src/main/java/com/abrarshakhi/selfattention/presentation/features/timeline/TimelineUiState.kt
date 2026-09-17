@@ -11,9 +11,15 @@ data class TimelineUiState(
     val visibleMonth: YearMonth = YearMonth.now(),
     val classesForDay: List<ScheduledClass> = emptyList(),
     val classCountByWeekday: Map<DayOfWeek, Int> = emptyMap(),
+    val weekStartDay: DayOfWeek = DayOfWeek.MONDAY,
+    val weeklyHolidays: Set<DayOfWeek> = emptySet(),
     val isLoading: Boolean = true,
 ) {
-    fun classCountOn(date: LocalDate): Int = classCountByWeekday[date.dayOfWeek] ?: 0
+    /** Weekly holidays mean no classes that weekday, so they never carry an indicator dot. */
+    fun classCountOn(date: LocalDate): Int =
+        if (date.dayOfWeek in weeklyHolidays) 0 else classCountByWeekday[date.dayOfWeek] ?: 0
+
+    val selectedDayIsHoliday: Boolean get() = selectedDay.dayOfWeek in weeklyHolidays
 }
 
 data class ScheduledClass(

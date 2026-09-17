@@ -14,7 +14,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AlarmOff
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -42,6 +47,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.domain.model.AppSettings
 import com.abrarshakhi.selfattention.domain.model.ThemeMode
 import com.abrarshakhi.selfattention.presentation.components.SelectableChip
+import com.abrarshakhi.selfattention.presentation.components.WarningBanner
+import com.abrarshakhi.selfattention.presentation.permissions.rememberExactAlarmPermissionState
+import com.abrarshakhi.selfattention.presentation.permissions.rememberNotificationPermissionState
+import com.abrarshakhi.selfattention.presentation.theme.AppTheme
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -76,6 +85,12 @@ private fun SettingsContent(
     // the themed background and is the semantic container the rest of the screen sits on.
     Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+
+            // ── Reminders ────────────────────────────────────────────────────
+            SettingsHeader("Reminders")
+            ReminderPermissions(modifier = Modifier.padding(horizontal = 16.dp))
+
+            SettingsDivider()
 
             // ── Appearance ───────────────────────────────────────────────────
             SettingsHeader("Appearance")
@@ -155,6 +170,57 @@ private fun SettingsContent(
             },
             onDismiss = { weekStartDialogOpen = false },
         )
+    }
+}
+
+/**
+ * Shows whether the reminder pipeline can actually run.
+ *
+ * Both permissions fail silently in the scheduler and notifier, so this is the only place the app
+ * tells the user that reminders are switched off at the system level.
+ */
+@Composable
+private fun ReminderPermissions(modifier: Modifier = Modifier) {
+    val notifications = rememberNotificationPermissionState()
+    val exactAlarms = rememberExactAlarmPermissionState()
+
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (!notifications.isGranted) {
+            WarningBanner(
+                icon = Icons.Default.NotificationsOff,
+                title = "Notifications are off",
+                message = "Reminders and \"did you attend?\" prompts cannot appear until you " +
+                    "allow notifications for this app.",
+                actionLabel = if (notifications.mustUseSettings) "Open settings" else "Allow",
+                onAction = notifications.request,
+            )
+        }
+
+        if (!exactAlarms.isGranted) {
+            WarningBanner(
+                icon = Icons.Default.AlarmOff,
+                title = "Exact alarms are off",
+                message = "Reminders can't be scheduled at the right time without permission to " +
+                    "set exact alarms.",
+                actionLabel = "Open settings",
+                onAction = exactAlarms.request,
+            )
+        }
+
+        if (notifications.isGranted && exactAlarms.isGranted) {
+            ListItem(
+                headlineContent = { Text("Reminders are set up") },
+                supportingContent = { Text("Notifications and exact alarms are allowed.") },
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = AppTheme.status.present.color,
+                    )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            )
+        }
     }
 }
 

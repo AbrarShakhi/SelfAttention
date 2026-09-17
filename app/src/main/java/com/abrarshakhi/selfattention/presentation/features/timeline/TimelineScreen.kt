@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -73,6 +74,7 @@ fun TimelineScreen(
             ExpandableCalendar(
                 selectedDate = state.selectedDay,
                 visibleMonth = state.visibleMonth,
+                weekStart = state.weekStartDay,
                 expanded = calendarExpanded,
                 classCountOn = state::classCountOn,
                 onDateSelected = viewModel::selectDay,
@@ -91,7 +93,11 @@ fun TimelineScreen(
             )
 
             if (state.classesForDay.isEmpty()) {
-                EmptyDay(date = state.selectedDay, modifier = Modifier.weight(1f))
+                EmptyDay(
+                    date = state.selectedDay,
+                    isHoliday = state.selectedDayIsHoliday,
+                    modifier = Modifier.weight(1f),
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -149,7 +155,7 @@ private fun DayHeader(
 
 
 @Composable
-private fun EmptyDay(date: LocalDate, modifier: Modifier = Modifier) {
+private fun EmptyDay(date: LocalDate, isHoliday: Boolean, modifier: Modifier = Modifier) {
     val locale = LocalLocale.current.platformLocale
     val isToday = date == remember { LocalDate.now() }
     val dayName = remember(date, locale) {
@@ -171,7 +177,7 @@ private fun EmptyDay(date: LocalDate, modifier: Modifier = Modifier) {
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    imageVector = Icons.Default.EventBusy,
+                    imageVector = if (isHoliday) Icons.Default.BeachAccess else Icons.Default.EventBusy,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                 )
@@ -181,7 +187,11 @@ private fun EmptyDay(date: LocalDate, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = if (isToday) "Nothing scheduled today" else "Nothing scheduled",
+            text = when {
+                isHoliday -> "Weekly holiday"
+                isToday -> "Nothing scheduled today"
+                else -> "Nothing scheduled"
+            },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
@@ -190,10 +200,10 @@ private fun EmptyDay(date: LocalDate, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(4.dp))
 
         Text(
-            text = if (isToday) {
-                "Enjoy the day off."
-            } else {
-                "You have no classes on $dayName."
+            text = when {
+                isHoliday -> "You marked $dayName as a weekly holiday, so no classes are counted."
+                isToday -> "Enjoy the day off."
+                else -> "You have no classes on $dayName."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

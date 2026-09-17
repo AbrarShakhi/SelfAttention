@@ -3,6 +3,8 @@ package com.abrarshakhi.selfattention.presentation
 import app.cash.turbine.test
 import com.abrarshakhi.selfattention.domain.model.Course
 import com.abrarshakhi.selfattention.domain.model.CourseStats
+import com.abrarshakhi.selfattention.domain.model.AppSettings
+import com.abrarshakhi.selfattention.domain.repository.SettingsRepository
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetNextClassUseCase
 import com.abrarshakhi.selfattention.domain.usecase.attendance.GetCourseStatsUseCase
 import com.abrarshakhi.selfattention.domain.usecase.course.GetCoursesUseCase
@@ -36,6 +38,9 @@ class HomeViewModelTest {
     private val getCourses: GetCoursesUseCase = mockk()
     private val getCourseStats: GetCourseStatsUseCase = mockk()
     private val getNextClass = GetNextClassUseCase()
+    private val settingsRepository: SettingsRepository = mockk {
+        every { getSettings() } returns flowOf(AppSettings())
+    }
 
     @Before
     fun setUp() {
@@ -54,7 +59,7 @@ class HomeViewModelTest {
     @Test
     fun `isLoading becomes false after courses are emitted`() = runTest {
         every { getCourses() } returns flowOf(emptyList())
-        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass)
+        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass, settingsRepository)
 
         viewModel.state.test {
             val initial = awaitItem()
@@ -74,7 +79,7 @@ class HomeViewModelTest {
         every { getCourses() } returns flowOf(courses)
         every { getCourseStats(any()) } returns flowOf(buildStats())
 
-        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass)
+        val viewModel = HomeViewModel(getCourses, getCourseStats, getNextClass, settingsRepository)
 
         viewModel.state.test {
             skipItems(1) // loading state

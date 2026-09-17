@@ -9,6 +9,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.abrarshakhi.selfattention.presentation.features.addcourse.AddCourseScreen
 import com.abrarshakhi.selfattention.presentation.features.coursedetail.CourseDetailScreen
+import com.abrarshakhi.selfattention.presentation.features.courseeditor.CourseEditorScreen
 import com.abrarshakhi.selfattention.presentation.features.home.HomeScreen
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsScreen
 import com.abrarshakhi.selfattention.presentation.features.timeline.TimelineScreen
@@ -43,6 +44,15 @@ fun AppNavigation(
             }
             entry<AppRoute.Settings> {
                 SettingsScreen(viewModel = settingsViewModel)
+            }
+            entry<AppRoute.CourseEditor> {
+                CourseEditorScreen(
+                    courseId = it.courseId,
+                    // Back to the course, which re-reads and shows the new values.
+                    onSaved = { backStack.back() },
+                    // Past the course too: its detail screen has nothing left to show.
+                    onDeleted = { backStack.back(); backStack.back() },
+                )
             }
             entry<AppRoute.AddCourses> {
                 AddCourseScreen(onDone = { backStack.back() })
