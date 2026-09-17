@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.presentation.app.AppRoot
@@ -20,6 +21,13 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+
+        var keepSplashScreen = true
+        splashScreen.setKeepOnScreenCondition {
+            keepSplashScreen
+        }
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -43,6 +51,7 @@ class MainActivity : ComponentActivity() {
                 appFont = settingsState.settings.appFont,
             ) {
                 if (!settingsState.isLoading) {
+                    keepSplashScreen = false
                     AppRoot(
                         settingsViewModel = settingsViewModel,
                         startRoute = if (settingsState.settings.hasCompletedOnboarding) AppRoute.Home
