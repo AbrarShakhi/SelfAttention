@@ -3,25 +3,42 @@ package com.abrarshakhi.selfattention.presentation.theme
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.abrarshakhi.selfattention.R
 
 /**
- * The type face for the whole app.
- *
- * To use a brand font instead, this is the only line that changes — e.g. with the
- * `ui-text-google-fonts` dependency (already on the classpath, certs in `res/values/font_certs.xml`):
- *
- *     private val provider = GoogleFont.Provider(
- *         "com.google.android.gms.fonts", "com.google.android.gms",
- *         R.array.com_google_android_gms_fonts_certs,
- *     )
- *     val AppFontFamily = FontFamily(Font(GoogleFont("Inter"), provider))
- *
- * Note downloadable fonts render in the system face until the provider resolves, and fall back
- * entirely on devices without Play Services.
+ * Downloadable-font provider, authenticated with the certificates in
+ * `res/values/font_certs.xml`. `com_google_android_gms_fonts_certs` references the dev and prod
+ * arrays, so naming it keeps all three in use.
  */
-val AppFontFamily: FontFamily = FontFamily.Default
+private val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs,
+)
+
+private val brandFont = GoogleFont("Inter")
+
+/**
+ * The type face for the whole app — swap [brandFont] to re-brand.
+ *
+ * All four weights the app asks for are declared: the type scale uses Normal and Medium, and
+ * individual `Text`s override to SemiBold or Bold. Without an entry the provider would synthesise
+ * the weight, which reads heavier and blurrier than the real cut.
+ *
+ * These load asynchronously: the first frames render in the system font and swap once the
+ * provider resolves. On a device without Play Services the download fails and text stays in the
+ * fallback, which is why nothing here depends on the font being present.
+ */
+val AppFontFamily: FontFamily = FontFamily(
+    Font(googleFont = brandFont, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = brandFont, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = brandFont, fontProvider = provider, weight = FontWeight.SemiBold),
+    Font(googleFont = brandFont, fontProvider = provider, weight = FontWeight.Bold),
+)
 
 /**
  * The Material 3 type scale, at spec.
