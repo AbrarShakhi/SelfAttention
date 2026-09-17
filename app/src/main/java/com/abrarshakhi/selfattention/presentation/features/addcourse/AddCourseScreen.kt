@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,13 +37,9 @@ import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.abrarshakhi.selfattention.presentation.components.SectionLabel
-import com.abrarshakhi.selfattention.presentation.theme.CaveatFamily
-import com.abrarshakhi.selfattention.presentation.theme.Ink
-import com.abrarshakhi.selfattention.presentation.theme.Ink2
-import com.abrarshakhi.selfattention.presentation.theme.Ink3
-import com.abrarshakhi.selfattention.presentation.theme.Today
 import java.time.DayOfWeek
 import java.time.format.TextStyle
+import com.abrarshakhi.selfattention.presentation.components.SelectableChip
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -100,7 +95,7 @@ fun AddCourseScreen(
             ) {
                 DayOfWeek.entries.forEach { day ->
                     val selected = state.selectedDays.contains(day)
-                    DayChip(
+                    SelectableChip(
                         label = day.getDisplayName(
                             TextStyle.SHORT,
                             LocalLocale.current.platformLocale
@@ -114,13 +109,7 @@ fun AddCourseScreen(
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             InlineLabel("at")
-            TimePicker(
-                state = timePickerState,
-                colors = TimePickerDefaults.colors(
-                    clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
-                    selectorColor = Today,
-                ),
-            )
+            TimePicker(state = timePickerState)
             LaunchedEffect(timePickerState.hour, timePickerState.minute) {
                 viewModel.onTimeChange(timePickerState.hour, timePickerState.minute)
             }
@@ -143,7 +132,7 @@ fun AddCourseScreen(
                     Text(
                         text = "No reminder",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Ink2,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -155,12 +144,9 @@ fun AddCourseScreen(
             onClick = viewModel::save,
             enabled = state.canSave && !state.isSaving,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Today),
-            shape = RoundedCornerShape(12.dp),
         ) {
             Text(
                 text = if (state.isSaving) "Saving…" else "Add Subject",
-                fontFamily = CaveatFamily,
                 style = MaterialTheme.typography.titleLarge,
             )
         }
@@ -189,9 +175,8 @@ private fun SentenceRow(content: @Composable () -> Unit) {
 private fun InlineLabel(text: String) {
     Text(
         text = text,
-        fontFamily = CaveatFamily,
         style = MaterialTheme.typography.titleLarge,
-        color = Ink2,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -205,25 +190,10 @@ private fun InlineTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = Ink3) },
+        placeholder = { Text(placeholder) },
         textStyle = MaterialTheme.typography.titleMedium,
         singleLine = true,
         modifier = modifier,
     )
 }
 
-@Composable
-private fun DayChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    val bg = if (selected) Today else Color.Transparent
-    val textColor = if (selected) Color.White else Ink
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = textColor,
-        modifier = Modifier
-            .border(1.5.dp, if (selected) Today else Ink3, RoundedCornerShape(20.dp))
-            .background(bg, RoundedCornerShape(20.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-    )
-}

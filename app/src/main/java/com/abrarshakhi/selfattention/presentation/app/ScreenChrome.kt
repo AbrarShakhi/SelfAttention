@@ -9,6 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
@@ -16,9 +17,13 @@ import com.abrarshakhi.selfattention.presentation.navigation.BottomKey
 import com.abrarshakhi.selfattention.presentation.navigation.back
 import com.abrarshakhi.selfattention.presentation.navigation.navigateTo
 
+@OptIn(ExperimentalMaterial3Api::class)
 data class ScreenChrome(
     val title: String,
-    val topBar: @Composable (backStack: SnapshotStateList<AppRoute>) -> Unit = {},
+    val topBar: @Composable (
+        backStack: SnapshotStateList<AppRoute>,
+        scrollBehavior: TopAppBarScrollBehavior,
+    ) -> Unit = { _, _ -> },
     val fab: @Composable (backStack: SnapshotStateList<AppRoute>) -> Unit = {},
     val bottomBarKey: BottomKey? = null
 )
@@ -27,7 +32,12 @@ data class ScreenChrome(
 fun AppRoute.chrome(): ScreenChrome = when (this) {
     is AppRoute.Home -> ScreenChrome(
         title = "Home",
-        topBar = { TopAppBar(title = { Text(text = "Home") }) },
+        topBar = { _, scrollBehavior ->
+            TopAppBar(
+                title = { Text(text = "Home") },
+                scrollBehavior = scrollBehavior,
+            )
+        },
         fab = { backstack ->
             ExtendedFloatingActionButton(
                 text = { Text(text = "Add Course") },
@@ -40,28 +50,38 @@ fun AppRoute.chrome(): ScreenChrome = when (this) {
 
     is AppRoute.Timeline -> ScreenChrome(
         title = "Timeline",
-        topBar = { TopAppBar(title = { Text(text = "Timeline") }) },
+        topBar = { _, scrollBehavior ->
+            TopAppBar(
+                title = { Text(text = "Timeline") },
+                scrollBehavior = scrollBehavior,
+            )
+        },
         fab = {},
         bottomBarKey = this
     )
 
     is AppRoute.Settings -> ScreenChrome(
         title = "Settings",
-        topBar = { TopAppBar(title = { Text(text = "Settings") }) },
+        topBar = { _, scrollBehavior ->
+            TopAppBar(
+                title = { Text(text = "Settings") },
+                scrollBehavior = scrollBehavior,
+            )
+        },
         fab = {},
         bottomBarKey = this
     )
 
     is AppRoute.AddCourses -> ScreenChrome(
         title = "AddCourses",
-        topBar = { backstack ->
+        topBar = { backstack, scrollBehavior ->
             TopAppBar(title = {
                 Text(text = "Add a Course")
             }, navigationIcon = {
                 IconButton(onClick = { backstack.back() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-            })
+            }, scrollBehavior = scrollBehavior)
         },
         fab = {},
         bottomBarKey = null
@@ -69,14 +89,14 @@ fun AppRoute.chrome(): ScreenChrome = when (this) {
 
     is AppRoute.CourseDetails -> ScreenChrome(
         title = "Course Details",
-        topBar = { backstack ->
+        topBar = { backstack, scrollBehavior ->
             TopAppBar(title = {
-                Text(text = this.courseId.toString())
+                Text(text = "Course")
             }, navigationIcon = {
                 IconButton(onClick = { backstack.back() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
-            })
+            }, scrollBehavior = scrollBehavior)
         },
         fab = {},
         bottomBarKey = null
