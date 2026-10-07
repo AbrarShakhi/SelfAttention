@@ -52,13 +52,21 @@ installation; otherwise it is under *Settings → Apps → Special app access �
 **Reminders**
 - An optional reminder a configurable number of minutes before class.
 - A prompt after class asking whether you attended, so nothing goes unrecorded.
-- Reminders survive a reboot.
+- Reminders survive a reboot, an app update, and time or timezone changes.
 
 **Timeline**
 - A calendar that expands from a single week to a full month, and collapses again as you scroll
   the day's classes.
 
+**Home-screen widgets**
+- *Next class* — the upcoming course and when it starts.
+- *Today* — today's classes with Present / Absent / Holiday buttons right on the widget.
+- *Attendance* — overall ring plus every course's percentage, at-risk courses highlighted.
+
 **Personalisation**
+- Material 3 Expressive design with shape-morphing components and motion.
+- Colour scheme generated from a seed colour you pick (eight seeds, six palette styles), or from
+  your wallpaper on Android 12+; optional pure-black dark theme.
 - Light, dark, or system theme.
 - Eight typefaces, including a system option that needs no download.
 - Configurable first day of the week and weekly holidays; holiday weekdays never count as class
@@ -114,7 +122,7 @@ cd SelfAttention
 ./gradlew testDebugUnitTest
 ```
 
-41 JVM unit tests cover the parts where a mistake is expensive and invisible:
+53 JVM unit tests cover the parts where a mistake is expensive and invisible:
 
 | Area | What is verified |
 |---|---|
@@ -122,7 +130,10 @@ cd SelfAttention
 | `UpdateCourseUseCaseTest` | Editing a course cancels alarms against the **stored** schedule before re-arming |
 | `AppRouteBackStackSaverTest` | Navigation survives rotation and process death, arguments included |
 | `CourseScheduleTest` | A weekly holiday overrides a course's schedule |
-| `CalendarWeekTest` | Calendar maths honours the configured first day of the week |
+| `CalendarMathTest` | Calendar maths honours the configured first day of the week |
+| `CourseStatsTest` | "Classes you can miss" and "classes needed" against the 75% target |
+| `CourseFormStateTest` | The add/edit form validates, trims, and keeps a course's identity when editing |
+| `GetScheduleForDateUseCaseTest` | A day's classes come back in start order, and weekly holidays have none |
 | `GetCourseStatsUseCaseTest`, `GetNextClassUseCaseTest`, `MarkAttendanceUseCaseTest`, `HomeViewModelTest` | Core attendance logic |
 
 Run a single class or method:
@@ -162,7 +173,8 @@ app/src/main/java/com/abrarshakhi/selfattention/
 
 | | |
 |---|---|
-| UI | Jetpack Compose, Material 3 (Compose BOM 2026.09.00) |
+| UI | Jetpack Compose, Material 3 Expressive (`material3` 1.5.0-alpha29), MaterialKolor, Lottie |
+| Widgets | Jetpack Glance 1.2 |
 | Navigation | Navigation 3 (`androidx.navigation3` 1.1.7) |
 | DI | Hilt 2.60.1 |
 | Database | Room 2.8.5 |
@@ -203,7 +215,8 @@ with only the essentials will load.
       "classMinute": 30,
       "classDurationMinutes": 60,
       "hasReminder": true,
-      "reminderMinutesBefore": 15
+      "reminderMinutesBefore": 15,
+      "createdOn": "2026-09-01"
     }
   ],
   "attendance": [
@@ -217,6 +230,7 @@ with only the essentials will load.
 | `scheduleDays` | ISO weekday numbers, Monday = 1 … Sunday = 7 |
 | `classHour` / `classMinute` | 24-hour clock |
 | `date` | ISO `yyyy-MM-dd` |
+| `createdOn` | ISO date the course was added. Older backups without it start at the course's first recorded class. |
 | `status` | `PRESENT`, `ABSENT`, or `HOLIDAY` |
 
 **Import is additive.** Courses are inserted alongside whatever already exists and are given fresh
@@ -247,13 +261,6 @@ failing silently.
 
 Documented here rather than left to be discovered later.
 
-- **Reminders still fire on weekly holidays.** The scheduler runs in the data layer and has no
-  access to the holiday setting, so it arms alarms on days the rest of the app treats as having no
-  class.
-- **Class length is fixed at 60 minutes.** It is stored per course but not yet editable, and it
-  determines when the after-class prompt appears.
-- **Attendance statistics use a UTC day boundary** when deriving a course's start date, so the
-  scheduled-class count can be off by one depending on the device's timezone.
 - **Database migrations have not been exercised on a device.** The v1 → v2 rename was validated
   against SQLite directly, but Room's own schema check only runs on a real upgrade.
 
