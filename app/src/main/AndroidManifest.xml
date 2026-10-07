@@ -40,6 +40,42 @@
             android:exported="false" />
 
         <receiver
+            android:name=".feature.widget.NextClassWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_next_class_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_next_class_info" />
+        </receiver>
+
+        <receiver
+            android:name=".feature.widget.TodayWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_today_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_today_info" />
+        </receiver>
+
+        <receiver
+            android:name=".feature.widget.AttendanceWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_attendance_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_attendance_info" />
+        </receiver>
+
+        <receiver
             android:name=".core.alarm.BootReceiver"
             android:exported="true">
             <intent-filter android:priority="1000">

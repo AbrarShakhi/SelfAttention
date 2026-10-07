@@ -3,8 +3,8 @@ package com.abrarshakhi.selfattention.feature.settings.component
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AlarmOff
 import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.AlarmOff
 import androidx.compose.material.icons.rounded.Contrast
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Info
@@ -31,10 +31,10 @@ import com.abrarshakhi.selfattention.core.designsystem.component.ShapedIcon
 import com.abrarshakhi.selfattention.core.designsystem.component.segmentedItemColors
 import com.abrarshakhi.selfattention.core.designsystem.theme.AppTheme
 import com.abrarshakhi.selfattention.core.designsystem.theme.supportsWallpaperColors
+import com.abrarshakhi.selfattention.core.model.AppFont
 import com.abrarshakhi.selfattention.core.model.AppSettings
 import com.abrarshakhi.selfattention.core.model.ColorStyle
 import com.abrarshakhi.selfattention.core.model.ThemeMode
-import com.abrarshakhi.selfattention.core.model.AppFont
 import com.abrarshakhi.selfattention.core.ui.permission.PermissionState
 import com.abrarshakhi.selfattention.core.ui.preference.ColorStyleSelector
 import com.abrarshakhi.selfattention.core.ui.preference.FontSelector
@@ -91,9 +91,8 @@ private fun PermissionItem(
 ) {
     val palette = if (state.isGranted) AppTheme.status.present else AppTheme.status.absent
     SegmentedListItem(
-        onClick = state.request,
+        onClick = { if (!state.isGranted) state.request() },
         shapes = shapes,
-        enabled = !state.isGranted,
         colors = segmentedItemColors(),
         leadingContent = {
             ShapedIcon(

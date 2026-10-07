@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.abrarshakhi.selfattention.core.designsystem.component.connectedButtonShapes
+import com.abrarshakhi.selfattention.core.designsystem.component.toggleColors
 import com.abrarshakhi.selfattention.core.model.Course
 import com.abrarshakhi.selfattention.core.ui.calendar.WeekdayToggleRow
 import com.abrarshakhi.selfattention.core.ui.course.CourseAvatar
@@ -251,6 +252,7 @@ private fun MinuteOptions(options: List<Int>, selected: Int, onSelect: (Int) -> 
                 onCheckedChange = { onSelect(minutes) },
                 modifier = Modifier.weight(1f),
                 shapes = connectedButtonShapes(index, options.size),
+                colors = toggleColors(),
             ) { Text("${minutes}m", maxLines = 1) }
         }
     }

@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.abrarshakhi.selfattention.core.designsystem.component.connectedButtonShapes
+import com.abrarshakhi.selfattention.core.designsystem.component.toggleColors
 import com.abrarshakhi.selfattention.core.designsystem.theme.AppTheme
 import com.abrarshakhi.selfattention.core.designsystem.theme.SeedColors
 import com.abrarshakhi.selfattention.core.designsystem.theme.fontFamilyFor
@@ -75,6 +76,7 @@ fun ThemeModeSelector(
                 onCheckedChange = { onSelect(mode) },
                 modifier = Modifier.weight(1f),
                 shapes = connectedButtonShapes(index, modes.size),
+                colors = toggleColors(),
             ) {
                 Icon(mode.icon, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
@@ -102,6 +104,7 @@ fun ColorStyleSelector(
                 checked = style == selected,
                 onCheckedChange = { onSelect(style) },
                 enabled = enabled,
+                colors = toggleColors(),
             ) { Text(style.label) }
         }
     }

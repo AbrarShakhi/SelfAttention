@@ -11,7 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ToggleButtonSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,6 +19,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.abrarshakhi.selfattention.core.designsystem.component.connectedButtonShapes
+import com.abrarshakhi.selfattention.core.designsystem.component.toggleColors
 import com.abrarshakhi.selfattention.core.designsystem.theme.AppTheme
 import com.abrarshakhi.selfattention.core.designsystem.theme.forStatus
 import com.abrarshakhi.selfattention.core.model.AttendanceStatus
@@ -49,7 +49,7 @@ fun AttendanceToggleGroup(
                     .semantics { role = Role.RadioButton },
                 buttonSize = buttonSize,
                 shapes = connectedButtonShapes(index, statuses.size),
-                colors = ToggleButtonDefaults.colors(
+                colors = toggleColors(
                     checkedContainerColor = palette.color,
                     checkedContentColor = palette.onColor,
                 ),

@@ -1,8 +1,8 @@
 package com.abrarshakhi.selfattention.feature.onboarding
 
-import androidx.annotation.RawRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RawRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally

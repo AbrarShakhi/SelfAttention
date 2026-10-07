@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Self Attention</string>
+    <string name="widget_next_class_name">Next class</string>
+    <string name="widget_next_class_description">Your upcoming class at a glance</string>
+    <string name="widget_today_name">Today</string>
+    <string name="widget_today_description">Today\'s classes, marked right from your home screen</string>
+    <string name="widget_attendance_name">Attendance</string>
+    <string name="widget_attendance_description">Overall and per-course attendance</string>
 </resources>
