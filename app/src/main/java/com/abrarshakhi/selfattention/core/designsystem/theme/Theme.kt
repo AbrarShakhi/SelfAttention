@@ -34,7 +34,7 @@ fun SelfAttentionTheme(
     val context = LocalContext.current
     val target = remember(context, colors, isDark) { colorSchemeFor(context, colors, isDark) }
     val colorScheme = animateColorScheme(target)
-    val statusColors = remember(colorScheme.primary, isDark) { statusColors(colorScheme.primary, isDark) }
+    val statusColors = remember(target.primary, isDark) { statusColors(target.primary, isDark) }
     val typography = remember(appFont) { appTypography(appFont) }
 
     CompositionLocalProvider(LocalStatusColors provides statusColors) {

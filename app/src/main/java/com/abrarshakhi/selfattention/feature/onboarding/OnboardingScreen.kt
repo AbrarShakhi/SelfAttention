@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RawRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
@@ -105,9 +107,12 @@ fun OnboardingScreen(
                     .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                AnimatedVisibility(visible = !isLastPage, enter = fadeIn(), exit = fadeOut()) {
-                    TextButton(onClick = finish) { Text("Skip") }
-                }
+                val skipAlpha by animateFloatAsState(if (isLastPage) 0f else 1f, label = "skipAlpha")
+                TextButton(
+                    onClick = finish,
+                    enabled = !isLastPage,
+                    modifier = Modifier.alpha(skipAlpha),
+                ) { Text("Skip") }
             }
 
             HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
@@ -121,7 +126,7 @@ fun OnboardingScreen(
                     when (page) {
                         0 -> WelcomePage()
                         1 -> OnboardingPage(
-                            animation = R.raw.welcome,
+                            animation = R.raw.palette,
                             title = "Make it yours",
                             subtitle = "Changes apply as you pick them.",
                         ) {

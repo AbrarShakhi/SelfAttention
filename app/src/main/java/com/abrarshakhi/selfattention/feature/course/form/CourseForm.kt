@@ -185,7 +185,12 @@ private fun SummaryCard(state: CourseFormState, courseId: Long) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CourseAvatar(course = preview, size = 64.dp)
+            CourseAvatar(
+                course = preview,
+                size = 64.dp,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            )
             Text(text = state.sentence(locale), style = MaterialTheme.typography.titleMedium)
         }
     }
@@ -294,10 +299,10 @@ private fun ClassTimePickerDialog(
 private fun CourseFormState.sentence(locale: Locale): String {
     val title = name.trim().ifBlank { "Your course" }
     val withCode = if (code.isBlank()) title else "$title · ${code.trim()}"
-    val dayText = if (days.isEmpty()) {
-        "pick some days"
+    val schedule = if (days.isEmpty()) {
+        "Pick the days it meets"
     } else {
-        days.sorted().joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }
+        "Every ${days.sorted().joinToString(", ") { it.getDisplayName(TextStyle.SHORT, locale) }} at ${classTime.clockLabel()}"
     }
-    return "$withCode\nevery $dayText at ${classTime.clockLabel()}"
+    return "$withCode\n$schedule"
 }

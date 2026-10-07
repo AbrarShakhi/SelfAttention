@@ -3,6 +3,7 @@ package com.abrarshakhi.selfattention.feature.widget
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.content.edit
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.abrarshakhi.selfattention.core.common.coroutine.ApplicationScope
 import com.abrarshakhi.selfattention.core.common.widget.WidgetUpdater
@@ -50,17 +51,26 @@ class WidgetSync @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     private suspend fun publishPreviews() {
+        val installedAt = context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        val prefs = context.getSharedPreferences(PREVIEW_PREFS, Context.MODE_PRIVATE)
+        if (prefs.getLong(KEY_PUBLISHED_FOR, 0L) == installedAt) return
+
         val manager = GlanceAppWidgetManager(context)
-        listOf(
+        val receivers = listOf(
             NextClassWidgetReceiver::class,
             TodayWidgetReceiver::class,
             AttendanceWidgetReceiver::class,
-        ).forEach { receiver ->
-            runCatching { manager.setWidgetPreviews(receiver) }
+        )
+        val allPublished = receivers.all { receiver ->
+            runCatching { manager.setWidgetPreviews(receiver) }.getOrNull() ==
+                GlanceAppWidgetManager.SET_WIDGET_PREVIEWS_RESULT_SUCCESS
         }
+        if (allPublished) prefs.edit { putLong(KEY_PUBLISHED_FOR, installedAt) }
     }
 
     private companion object {
         const val DEBOUNCE_MILLIS = 400L
+        const val PREVIEW_PREFS = "widget_previews"
+        const val KEY_PUBLISHED_FOR = "published_for_install"
     }
 }

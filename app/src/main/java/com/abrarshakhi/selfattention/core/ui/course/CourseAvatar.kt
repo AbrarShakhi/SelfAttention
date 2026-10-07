@@ -45,10 +45,14 @@ fun CourseAvatar(
     course: Course,
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
+    containerColor: Color = Color.Unspecified,
+    contentColor: Color = Color.Unspecified,
 ) {
-    val index = (course.id % AvatarPolygons.size).toInt().let { if (it < 0) -it else it }
+    val index = Math.floorMod(course.id, AvatarPolygons.size.toLong()).toInt()
     val shape = AvatarPolygons[index].toShape()
-    val (container, content) = avatarColors(index)
+    val (defaultContainer, defaultContent) = avatarColors(index)
+    val container = if (containerColor == Color.Unspecified) defaultContainer else containerColor
+    val content = if (contentColor == Color.Unspecified) defaultContent else contentColor
     Box(
         modifier = modifier
             .size(size)
