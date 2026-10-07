@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,9 +35,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,6 +61,7 @@ import com.abrarshakhi.selfattention.domain.model.Course
 import com.abrarshakhi.selfattention.domain.model.meetsOn
 import com.abrarshakhi.selfattention.domain.model.CourseStats
 import com.abrarshakhi.selfattention.presentation.components.AttendanceRing
+import com.abrarshakhi.selfattention.presentation.components.DetailTopAppBar
 import com.abrarshakhi.selfattention.presentation.components.leadingBlankCount
 import com.abrarshakhi.selfattention.presentation.components.weekdayOrder
 import com.abrarshakhi.selfattention.presentation.theme.AppTheme
@@ -71,25 +78,50 @@ import java.util.Locale
 @Composable
 fun CourseDetailScreen(
     courseId: Long,
+    onNavigateUp: () -> Unit,
+    onEdit: () -> Unit,
     viewModel: CourseDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(courseId) { viewModel.load(courseId) }
 
-    val course = state.course
-    if (course == null) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            DetailTopAppBar(
+                title = "Course",
+                onNavigateUp = onNavigateUp,
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit course")
+                    }
+                },
+            )
+        },
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        val course = state.course
+        if (course == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center,
+            ) {
                 CircularProgressIndicator()
             }
+            return@Scaffold
         }
-        return
-    }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CourseHeader(

@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,12 +23,16 @@ import androidx.compose.material.icons.filled.BeachAccess
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +58,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle as JavaTextStyle
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimelineScreen(
     onCourseClick: (Long) -> Unit,
@@ -69,8 +76,24 @@ fun TimelineScreen(
         },
     )
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.nestedScroll(nestedScroll)) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Timeline") },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+        contentWindowInsets = WindowInsets.safeDrawing,
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .nestedScroll(nestedScroll),
+        ) {
             ExpandableCalendar(
                 selectedDate = state.selectedDay,
                 visibleMonth = state.visibleMonth,

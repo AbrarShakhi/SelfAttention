@@ -13,15 +13,18 @@ import com.abrarshakhi.selfattention.presentation.features.courseeditor.CourseEd
 import com.abrarshakhi.selfattention.presentation.features.home.HomeScreen
 import com.abrarshakhi.selfattention.presentation.features.onboarding.OnboardingScreen
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsScreen
-import com.abrarshakhi.selfattention.presentation.features.timeline.TimelineScreen
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
-import com.abrarshakhi.selfattention.presentation.navigation.switchTapTo
+import com.abrarshakhi.selfattention.presentation.features.timeline.TimelineScreen
 
+/**
+ * Maps every [AppRoute] to its screen. This is the only place that mutates the back stack; screens
+ * receive plain callbacks and know nothing about navigation.
+ */
 @Composable
 fun AppNavigation(
     backStack: SnapshotStateList<AppRoute>,
+    settingsViewModel: SettingsViewModel,
     modifier: Modifier = Modifier,
-    settingsViewModel: SettingsViewModel
 ) {
     NavDisplay(
         backStack = backStack,
@@ -46,12 +49,17 @@ fun AppNavigation(
                 )
             }
             entry<AppRoute.Home> {
-                HomeScreen(onCourseClick = {
-                    backStack.navigateTo(AppRoute.CourseDetails(it))
-                })
+                HomeScreen(
+                    onCourseClick = { backStack.navigateTo(AppRoute.CourseDetails(it)) },
+                    onAddCourse = { backStack.navigateTo(AppRoute.AddCourses) },
+                )
             }
-            entry<AppRoute.CourseDetails> {
-                CourseDetailScreen(courseId = it.courseId)
+            entry<AppRoute.CourseDetails> { route ->
+                CourseDetailScreen(
+                    courseId = route.courseId,
+                    onNavigateUp = { backStack.back() },
+                    onEdit = { backStack.navigateTo(AppRoute.CourseEditor(route.courseId)) },
+                )
             }
             entry<AppRoute.Timeline> {
                 TimelineScreen(onCourseClick = {
@@ -61,9 +69,10 @@ fun AppNavigation(
             entry<AppRoute.Settings> {
                 SettingsScreen(viewModel = settingsViewModel)
             }
-            entry<AppRoute.CourseEditor> {
+            entry<AppRoute.CourseEditor> { route ->
                 CourseEditorScreen(
-                    courseId = it.courseId,
+                    courseId = route.courseId,
+                    onNavigateUp = { backStack.back() },
                     // Back to the course, which re-reads and shows the new values.
                     onSaved = { backStack.back() },
                     // Past the course too: its detail screen has nothing left to show.

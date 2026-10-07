@@ -1,57 +1,57 @@
 package com.abrarshakhi.selfattention.presentation.app
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.abrarshakhi.selfattention.presentation.features.settings.SettingsViewModel
 import com.abrarshakhi.selfattention.presentation.navigation.AppNavigation
 import com.abrarshakhi.selfattention.presentation.navigation.AppRoute
+import com.abrarshakhi.selfattention.presentation.navigation.BottomKey
 import com.abrarshakhi.selfattention.presentation.navigation.BottomNavBar
 import com.abrarshakhi.selfattention.presentation.navigation.currentRoute
 import com.abrarshakhi.selfattention.presentation.navigation.rememberAppBackStack
+import com.abrarshakhi.selfattention.presentation.navigation.switchTapTo
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * The outer layer of the app's two-layer `Scaffold`.
+ *
+ * This layer owns only app-level chrome — the bottom navigation bar on top-level destinations.
+ * Each screen supplies its own inner `Scaffold` with its top app bar and FAB.
+ *
+ * It applies no window insets itself; the padding it hands down is exactly the bottom bar, and it is
+ * consumed so the inner scaffolds' `safeDrawing` insets do not count the navigation bar twice.
+ */
 @Composable
 fun AppRoot(
     settingsViewModel: SettingsViewModel,
     startRoute: AppRoute = AppRoute.Home,
 ) {
     val backStack = rememberAppBackStack(startRoute)
-    val current = backStack.currentRoute()
-    val currentChrome = current?.chrome()
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
-    LaunchedEffect(current) {
-        scrollBehavior.state.contentOffset = 0f
-        scrollBehavior.state.heightOffset = 0f
-    }
+    val selectedTab = backStack.currentRoute() as? BottomKey
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = WindowInsets.safeDrawing,
-        topBar = { currentChrome?.topBar?.invoke(backStack, scrollBehavior) },
-        floatingActionButton = { currentChrome?.fab?.invoke(backStack) },
+        modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            currentChrome?.bottomBarKey?.let {
-                BottomNavBar(it, backStack)
+            if (selectedTab != null) {
+                BottomNavBar(
+                    selected = selectedTab,
+                    onSelect = backStack::switchTapTo,
+                )
             }
-        }) { innerPadding ->
+        },
+        contentWindowInsets = WindowInsets(0),
+    ) { innerPadding ->
         AppNavigation(
             backStack = backStack,
-            modifier = Modifier.padding(innerPadding),
-            settingsViewModel = settingsViewModel
+            settingsViewModel = settingsViewModel,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
         )
     }
 }
