@@ -84,6 +84,8 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.glance.appwidget)
     implementation(libs.glance.material3)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
