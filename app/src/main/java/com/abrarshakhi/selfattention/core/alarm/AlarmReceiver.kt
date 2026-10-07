@@ -3,6 +3,7 @@ package com.abrarshakhi.selfattention.core.alarm
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.abrarshakhi.selfattention.core.common.widget.WidgetUpdater
 import com.abrarshakhi.selfattention.core.data.repository.AttendanceRepository
 import com.abrarshakhi.selfattention.core.data.repository.CourseRepository
 import com.abrarshakhi.selfattention.core.notification.NotificationHelper
@@ -19,6 +20,7 @@ class AlarmReceiver : BroadcastReceiver() {
     @Inject lateinit var courseRepository: CourseRepository
     @Inject lateinit var attendanceRepository: AttendanceRepository
     @Inject lateinit var alarmScheduler: AlarmScheduler
+    @Inject lateinit var widgetUpdater: WidgetUpdater
 
     override fun onReceive(context: Context, intent: Intent) {
         val courseId = intent.getLongExtra(EXTRA_COURSE_ID, -1L)
@@ -46,6 +48,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 }
 
                 alarmScheduler.scheduleNext(course, today.dayOfWeek, type)
+                widgetUpdater.updateAll()
             } finally {
                 pendingResult.finish()
             }

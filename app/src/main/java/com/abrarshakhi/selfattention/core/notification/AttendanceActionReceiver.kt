@@ -3,6 +3,7 @@ package com.abrarshakhi.selfattention.core.notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.abrarshakhi.selfattention.core.common.widget.WidgetUpdater
 import com.abrarshakhi.selfattention.core.data.repository.AttendanceRepository
 import com.abrarshakhi.selfattention.core.model.AttendanceStatus
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,6 +17,7 @@ import javax.inject.Inject
 class AttendanceActionReceiver : BroadcastReceiver() {
 
     @Inject lateinit var attendanceRepository: AttendanceRepository
+    @Inject lateinit var widgetUpdater: WidgetUpdater
 
     companion object {
         const val EXTRA_COURSE_ID = "course_id"
@@ -36,6 +38,7 @@ class AttendanceActionReceiver : BroadcastReceiver() {
                 val date = LocalDate.ofEpochDay(epochDay)
                 attendanceRepository.upsertRecord(courseId, date, status)
                 NotificationHelper.cancelMarkAttendancePrompt(context, courseId)
+                widgetUpdater.updateAll()
             } finally {
                 result.finish()
             }

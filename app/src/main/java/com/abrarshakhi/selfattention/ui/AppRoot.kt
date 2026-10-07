@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,12 +21,24 @@ import com.abrarshakhi.selfattention.navigation.AppNavigation
 import com.abrarshakhi.selfattention.navigation.AppRoute
 import com.abrarshakhi.selfattention.navigation.TopLevelDestination
 import com.abrarshakhi.selfattention.navigation.currentRoute
+import com.abrarshakhi.selfattention.navigation.navigateTo
 import com.abrarshakhi.selfattention.navigation.rememberAppBackStack
 import com.abrarshakhi.selfattention.navigation.switchTapTo
 
 @Composable
-fun AppRoot(startRoute: AppRoute) {
+fun AppRoot(
+    startRoute: AppRoute,
+    deepLinkCourseId: Long? = null,
+    onDeepLinkHandled: () -> Unit = {},
+) {
     val backStack = rememberAppBackStack(startRoute)
+    LaunchedEffect(deepLinkCourseId) {
+        if (deepLinkCourseId != null) {
+            backStack.switchTapTo(AppRoute.Home)
+            backStack.navigateTo(AppRoute.CourseDetail(deepLinkCourseId))
+            onDeepLinkHandled()
+        }
+    }
     val selectedDestination = TopLevelDestination.of(backStack.currentRoute())
     var lastDestination by remember { mutableStateOf(selectedDestination ?: TopLevelDestination.HOME) }
     if (selectedDestination != null) lastDestination = selectedDestination

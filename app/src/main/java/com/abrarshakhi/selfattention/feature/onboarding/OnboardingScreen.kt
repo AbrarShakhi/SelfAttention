@@ -1,12 +1,18 @@
 package com.abrarshakhi.selfattention.feature.onboarding
 
-import android.net.Uri
+import androidx.annotation.RawRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -19,17 +25,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.School
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,24 +48,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.RoundedPolygon
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.abrarshakhi.selfattention.core.model.AppFont
-import com.abrarshakhi.selfattention.core.model.AppSettings
-import com.abrarshakhi.selfattention.core.model.ThemeMode
+import com.abrarshakhi.selfattention.R
+import com.abrarshakhi.selfattention.core.designsystem.component.LottieIllustration
+import com.abrarshakhi.selfattention.core.designsystem.component.ShapedIcon
+import com.abrarshakhi.selfattention.core.ui.backup.BackupMessageDialog
+import com.abrarshakhi.selfattention.core.ui.preference.ColorStyleSelector
 import com.abrarshakhi.selfattention.core.ui.preference.FontSelector
+import com.abrarshakhi.selfattention.core.ui.preference.SeedColorPicker
 import com.abrarshakhi.selfattention.core.ui.preference.ThemeModeSelector
 import com.abrarshakhi.selfattention.core.ui.preference.WeekStartSelector
 import com.abrarshakhi.selfattention.core.ui.preference.WeeklyHolidaySelector
-import com.abrarshakhi.selfattention.core.ui.backup.BackupMessageDialog
+import com.abrarshakhi.selfattention.feature.onboarding.component.PageIndicator
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 
 private const val PageCount = 4
 
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnboardingScreen(
     onFinish: () -> Unit,
@@ -62,6 +76,11 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val settings = state.settings
+    val pagerState = rememberPagerState(pageCount = { PageCount })
+    val scope = rememberCoroutineScope()
+    val isLastPage = pagerState.currentPage == PageCount - 1
+
     val finish = {
         viewModel.completeOnboarding()
         onFinish()
@@ -70,13 +89,9 @@ fun OnboardingScreen(
         viewModel.completeOnboarding()
         onAddCourse()
     }
-    val settings = state.settings
-    val pagerState = rememberPagerState(pageCount = { PageCount })
-    val scope = rememberCoroutineScope()
-
-    val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri: Uri? -> uri?.let { viewModel.importFrom(it.toString()) } }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.importFrom(it.toString()) }
+    }
 
     Scaffold(contentWindowInsets = WindowInsets.safeDrawing) { innerPadding ->
         Column(
@@ -87,16 +102,15 @@ fun OnboardingScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                TextButton(onClick = finish) { Text("Skip") }
+                AnimatedVisibility(visible = !isLastPage, enter = fadeIn(), exit = fadeOut()) {
+                    TextButton(onClick = finish) { Text("Skip") }
+                }
             }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.weight(1f),
-            ) { page ->
+            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { page ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -106,196 +120,141 @@ fun OnboardingScreen(
                 ) {
                     when (page) {
                         0 -> WelcomePage()
-                        1 -> AppearancePage(
-                            settings = settings,
-                            onThemeModeChange = viewModel::setThemeMode,
-                            onAppFontChange = viewModel::setAppFont,
-                        )
-
-                        2 -> WeekPage(
-                            settings = settings,
-                            onWeekStartChange = viewModel::setWeekStartDay,
-                            onHolidayToggle = viewModel::toggleHoliday,
-                        )
-
-                        else -> CoursesPage(
-                            onAddCourse = addCourse,
-                            onImport = {
-                                importLauncher.launch(
-                                    arrayOf(
-                                        "application/json",
-                                        "*/*"
-                                    )
-                                )
-                            },
-                        )
+                        1 -> OnboardingPage(
+                            animation = R.raw.welcome,
+                            title = "Make it yours",
+                            subtitle = "Changes apply as you pick them.",
+                        ) {
+                            ThemeModeSelector(selected = settings.themeMode, onSelect = viewModel::setThemeMode)
+                            SeedColorPicker(selected = settings.colorPreferences.seedColor, onSelect = viewModel::setSeedColor)
+                            ColorStyleSelector(selected = settings.colorPreferences.style, onSelect = viewModel::setColorStyle)
+                            FontSelector(selected = settings.appFont, onSelect = viewModel::setAppFont)
+                        }
+                        2 -> OnboardingPage(
+                            animation = R.raw.empty_day,
+                            title = "Your week",
+                            subtitle = "Weekly holidays never count as class days.",
+                        ) {
+                            Text("First day of the week", style = MaterialTheme.typography.titleSmall)
+                            WeekStartSelector(selected = settings.weekStartDay, onSelect = viewModel::setWeekStartDay)
+                            Text("Weekly holidays", style = MaterialTheme.typography.titleSmall)
+                            WeeklyHolidaySelector(
+                                selected = settings.weeklyHolidays,
+                                onToggle = viewModel::toggleHoliday,
+                                weekStart = settings.weekStartDay,
+                            )
+                        }
+                        else -> OnboardingPage(
+                            animation = R.raw.empty_courses,
+                            title = "Add your courses",
+                            subtitle = "Or bring them in from a backup — you can also do this later.",
+                        ) {
+                            Button(
+                                onClick = addCourse,
+                                shapes = ButtonDefaults.shapes(),
+                                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(Icons.Rounded.Add, contentDescription = null)
+                                Text("Add a course", modifier = Modifier.padding(start = 8.dp))
+                            }
+                            OutlinedButton(
+                                onClick = { importLauncher.launch(arrayOf("application/json", "*/*")) },
+                                shapes = ButtonDefaults.shapes(),
+                                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Icon(Icons.Rounded.Download, contentDescription = null)
+                                Text("Import a backup", modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
                     }
                 }
             }
-
-            PageIndicator(
-                pageCount = PageCount,
-                current = pagerState.currentPage,
-                modifier = Modifier.padding(vertical = 12.dp),
-            )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (pagerState.currentPage > 0) {
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) { Text("Back") }
-                }
+                PageIndicator(pageCount = PageCount, current = pagerState.currentPage, modifier = Modifier.weight(1f))
                 Button(
                     onClick = {
-                        if (pagerState.currentPage == PageCount - 1) {
+                        if (isLastPage) {
                             finish()
                         } else {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
+                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                         }
                     },
-                    modifier = Modifier.weight(1f),
+                    shapes = ButtonDefaults.shapes(),
+                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
                 ) {
-                    Text(if (pagerState.currentPage == PageCount - 1) "Get started" else "Next")
+                    AnimatedContent(
+                        targetState = isLastPage,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "onboardingNext",
+                    ) { last -> Text(if (last) "Get started" else "Next") }
+                    AnimatedVisibility(visible = !isLastPage, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.padding(start = 8.dp).size(20.dp),
+                        )
+                    }
                 }
             }
         }
     }
 
-    state.backupMessage?.let {
-        BackupMessageDialog(message = it, onDismiss = viewModel::dismissBackupMessage)
-    }
+    state.backupMessage?.let { BackupMessageDialog(message = it, onDismiss = viewModel::dismissBackupMessage) }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WelcomePage() {
-    Spacer(Modifier.height(24.dp))
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        LottieIllustration(animation = R.raw.welcome, modifier = Modifier.size(220.dp))
+    }
     Text(
         text = "Self Attention",
-        style = MaterialTheme.typography.displaySmall,
-        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.displaySmallEmphasized,
         color = MaterialTheme.colorScheme.primary,
     )
-    Text(
-        text = "Keep track of the classes you actually attend.",
-        style = MaterialTheme.typography.titleMedium,
-    )
-    Spacer(Modifier.height(8.dp))
-    Bullet("Add each course with its days and time.")
-    Bullet("Get a reminder before class, and a nudge afterwards to mark whether you went.")
-    Bullet("Watch your attendance percentage per course, so you know where you stand.")
-    Spacer(Modifier.height(8.dp))
-    Text(
-        text = "Next, a few quick preferences. You can change any of them later in Settings.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    Text(text = "Keep track of the classes you actually attend.", style = MaterialTheme.typography.titleMedium)
+    Spacer(Modifier.height(4.dp))
+    Feature(Icons.Rounded.School, MaterialShapes.Cookie9Sided, "Add each course with its days and time.")
+    Feature(Icons.Rounded.NotificationsActive, MaterialShapes.Clover4Leaf, "Get a reminder before class, and a nudge afterwards to mark whether you went.")
+    Feature(Icons.Rounded.Insights, MaterialShapes.Sunny, "Watch your attendance per course, so you know where you stand.")
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun Bullet(text: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("•", style = MaterialTheme.typography.bodyLarge)
-        Text(text = text, style = MaterialTheme.typography.bodyLarge)
+private fun Feature(icon: ImageVector, polygon: RoundedPolygon, text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        ShapedIcon(
+            icon = icon,
+            polygon = polygon,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            size = 44.dp,
+        )
+        Text(text = text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun AppearancePage(
-    settings: AppSettings,
-    onThemeModeChange: (ThemeMode) -> Unit,
-    onAppFontChange: (AppFont) -> Unit,
+private fun OnboardingPage(
+    @RawRes animation: Int,
+    title: String,
+    subtitle: String,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    PageHeading("Appearance", "Changes apply as you pick them.")
-    ThemeModeSelector(selected = settings.themeMode, onSelect = onThemeModeChange)
-    FontSelector(selected = settings.appFont, onSelect = onAppFontChange)
-}
-
-@Composable
-private fun WeekPage(
-    settings: AppSettings,
-    onWeekStartChange: (DayOfWeek) -> Unit,
-    onHolidayToggle: (DayOfWeek) -> Unit,
-) {
-    PageHeading("Your week", "Weekly holidays never count as class days.")
-    WeekStartSelector(selected = settings.weekStartDay, onSelect = onWeekStartChange)
-    Text(
-        text = "Weekly holidays",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-    )
-    WeeklyHolidaySelector(selected = settings.weeklyHolidays, onToggle = onHolidayToggle)
-}
-
-@Composable
-private fun CoursesPage(onAddCourse: () -> Unit, onImport: () -> Unit) {
-    PageHeading("Add your courses", "Or bring them in from a backup — you can also do this later.")
-    Button(onClick = onAddCourse, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Default.Add, contentDescription = null)
-        Spacer(Modifier.height(0.dp))
-        Text("  Add a course")
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        LottieIllustration(animation = animation, modifier = Modifier.size(150.dp))
     }
-    OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Default.Download, contentDescription = null)
-        Spacer(Modifier.height(0.dp))
-        Text("  Import from a backup")
-    }
-    Text(
-        text = "Importing adds courses from a JSON file exported by Self Attention.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-}
-
-@Composable
-private fun PageHeading(title: String, subtitle: String) {
-    Spacer(Modifier.height(24.dp))
-    Text(
-        text = title,
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-    )
-    Text(
-        text = subtitle,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(Modifier.height(8.dp))
-}
-
-@Composable
-private fun PageIndicator(pageCount: Int, current: Int, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        repeat(pageCount) { index ->
-            val color by animateColorAsState(
-                targetValue = if (index == current) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest
-                },
-                label = "onboardingDot",
-            )
-            Box(modifier = Modifier.padding(horizontal = 4.dp)) {
-                Surface(
-                    modifier = Modifier.size(if (index == current) 10.dp else 8.dp),
-                    shape = CircleShape,
-                    color = color,
-                    content = {},
-                )
-            }
-        }
-    }
+    Text(text = title, style = MaterialTheme.typography.headlineMediumEmphasized)
+    Text(text = subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp), content = content)
 }

@@ -7,9 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.abrarshakhi.selfattention.MainActivity
 import com.abrarshakhi.selfattention.R
 import com.abrarshakhi.selfattention.core.model.AttendanceStatus
+import com.abrarshakhi.selfattention.navigation.CourseDeepLink
 import java.time.LocalDate
 
 object NotificationHelper {
@@ -22,7 +22,7 @@ object NotificationHelper {
             .setContentText("$courseName ($code) is about to begin")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setContentIntent(openAppIntent(context))
+            .setContentIntent(openCourseIntent(context, courseId))
             .build()
         notify(context, notificationId(courseId, 0), notification)
     }
@@ -56,7 +56,7 @@ object NotificationHelper {
             .setContentText("$courseName ($code) — how was class?")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-            .setContentIntent(openAppIntent(context))
+            .setContentIntent(openCourseIntent(context, courseId))
             .addAction(0, "✓ Present", actionIntent(AttendanceStatus.PRESENT))
             .addAction(0, "✗ Absent", actionIntent(AttendanceStatus.ABSENT))
             .addAction(0, "☀ Holiday", actionIntent(AttendanceStatus.HOLIDAY))
@@ -70,15 +70,13 @@ object NotificationHelper {
             .cancel(notificationId(courseId, 1))
     }
 
-    private fun openAppIntent(context: Context): PendingIntent {
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-        }
-        return PendingIntent.getActivity(
-            context, 0, intent,
+    private fun openCourseIntent(context: Context, courseId: Long): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            courseId.toInt(),
+            CourseDeepLink.intent(context, courseId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-    }
 
     private fun notify(context: Context, id: Int, notification: Notification) {
         context.getSystemService(NotificationManager::class.java).notify(id, notification)
