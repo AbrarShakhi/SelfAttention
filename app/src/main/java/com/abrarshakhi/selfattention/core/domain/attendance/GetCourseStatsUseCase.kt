@@ -31,7 +31,7 @@ class GetCourseStatsUseCase @Inject constructor(
         weeklyHolidays: Set<DayOfWeek>,
     ): CourseStats {
         val today = LocalDate.now()
-        val scheduledDates = generateSequence(course.createdAt.toLocalDate()) { it.plusDays(1) }
+        val scheduledDates = generateSequence(course.createdOn()) { it.plusDays(1) }
             .takeWhile { !it.isAfter(today) }
             .filter { course.meetsOn(it, weeklyHolidays) }
             .toList()
@@ -48,7 +48,4 @@ class GetCourseStatsUseCase @Inject constructor(
             holiday = holiday,
         )
     }
-
-    private fun Long.toLocalDate(): LocalDate =
-        LocalDate.ofEpochDay(this / (24L * 60 * 60 * 1000))
 }

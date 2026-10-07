@@ -1,6 +1,7 @@
 package com.abrarshakhi.selfattention.core.ui.attendance
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,6 +49,7 @@ fun AttendanceToggleGroup(
                     .weight(1f)
                     .semantics { role = Role.RadioButton },
                 buttonSize = buttonSize,
+                contentPadding = PaddingValues(horizontal = 8.dp),
                 shapes = connectedButtonShapes(index, statuses.size),
                 colors = toggleColors(
                     checkedContainerColor = palette.color,
@@ -57,7 +59,7 @@ fun AttendanceToggleGroup(
                 Icon(status.icon, contentDescription = null, modifier = Modifier.size(18.dp))
                 if (showLabels) {
                     Spacer(Modifier.width(6.dp))
-                    Text(status.label, maxLines = 1)
+                    Text(status.label, maxLines = 1, softWrap = false)
                 }
             }
         }

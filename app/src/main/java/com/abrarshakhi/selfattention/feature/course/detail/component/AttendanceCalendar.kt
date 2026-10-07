@@ -38,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLocale
@@ -173,6 +174,7 @@ private fun DayCell(
             .aspectRatio(1f)
             .padding(3.dp)
             .semantics { contentDescription = description }
+            .clip(CircleShape)
             .clickable(enabled = isClassDay, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

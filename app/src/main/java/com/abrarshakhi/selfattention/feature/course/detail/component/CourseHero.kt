@@ -123,5 +123,5 @@ private fun CourseStats.headline(): String {
     val needed = classesToReach()
     if (needed > 0) return "Attend the next $needed to get back above $target%"
     val spare = classesYouCanMiss()
-    return if (spare > 0) "You can miss $spare and stay above $target%" else "Exactly on $target% — attend the next one"
+    return if (spare > 0) "You can miss $spare and stay above $target%" else "Missing the next class would drop you below $target%"
 }

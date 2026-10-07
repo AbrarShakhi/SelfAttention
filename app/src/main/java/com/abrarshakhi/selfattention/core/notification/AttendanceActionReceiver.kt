@@ -28,15 +28,15 @@ class AttendanceActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val courseId = intent.getLongExtra(EXTRA_COURSE_ID, -1L)
         val epochDay = intent.getLongExtra(EXTRA_EPOCH_DAY, -1L)
-        val statusName = intent.getStringExtra(EXTRA_STATUS) ?: return
+        val status = intent.getStringExtra(EXTRA_STATUS)
+            ?.let { name -> AttendanceStatus.entries.firstOrNull { it.name == name } }
+            ?: return
         if (courseId == -1L || epochDay == -1L) return
 
         val result = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val status = AttendanceStatus.valueOf(statusName)
-                val date = LocalDate.ofEpochDay(epochDay)
-                attendanceRepository.upsertRecord(courseId, date, status)
+                attendanceRepository.upsertRecord(courseId, LocalDate.ofEpochDay(epochDay), status)
                 NotificationHelper.cancelMarkAttendancePrompt(context, courseId)
                 widgetUpdater.updateAll()
             } finally {

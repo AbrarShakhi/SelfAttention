@@ -8,6 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.ZoneId
 
 class JsonBackupCodecTest {
 
@@ -34,6 +35,33 @@ class JsonBackupCodecTest {
         assertEquals(1, restored.attendance.size)
         assertEquals(AttendanceStatus.PRESENT, restored.attendance[0].status)
         assertEquals(LocalDate.of(2026, 9, 16), restored.attendance[0].date)
+    }
+
+    @Test
+    fun `keeps the date a course was created`() {
+        val created = LocalDate.of(2026, 2, 1)
+        val course = buildCourse().copy(
+            createdAt = created.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+        )
+
+        val restored = codec.decode(codec.encode(BackupData(listOf(course), emptyList())))
+
+        assertEquals(created, restored.courses[0].createdOn())
+    }
+
+    @Test
+    fun `older backups without a creation date start at the first recorded class`() {
+        val json = """
+            {"version":1,"courses":[{"id":4,"name":"Maths","scheduleDays":[1]}],
+             "attendance":[
+               {"courseId":4,"date":"2026-03-09","status":"ABSENT"},
+               {"courseId":4,"date":"2026-03-02","status":"PRESENT"}
+             ]}
+        """.trimIndent()
+
+        val restored = codec.decode(json)
+
+        assertEquals(LocalDate.of(2026, 3, 2), restored.courses[0].createdOn())
     }
 
     @Test

@@ -107,7 +107,7 @@ private fun CourseStats?.guidance(): String {
     val needed = classesToReach()
     if (needed > 0) return "Attend the next $needed ${plural(needed)} to get back on track"
     val spare = classesYouCanMiss()
-    return if (spare > 0) "You can miss $spare ${plural(spare)} and stay on track" else "Right on the line — don't miss the next one"
+    return if (spare > 0) "You can miss $spare ${plural(spare)} and stay on track" else "Missing the next class would put you below the target"
 }
 
 private fun plural(count: Int) = if (count == 1) "class" else "classes"

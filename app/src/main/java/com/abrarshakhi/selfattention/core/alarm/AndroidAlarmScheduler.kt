@@ -3,12 +3,12 @@ package com.abrarshakhi.selfattention.core.alarm
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import com.abrarshakhi.selfattention.core.model.Course
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.DayOfWeek
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -25,28 +25,21 @@ class AndroidAlarmScheduler @Inject constructor(
     }
 
     override fun scheduleNext(course: Course, dayOfWeek: DayOfWeek, type: AlarmType) {
-        if (!canScheduleExact()) return
+        val trigger = nextAlarmTrigger(course, dayOfWeek, type, LocalDateTime.now())
+        val triggerAtMillis = trigger.triggerAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val operation = pendingIntent(course.id, dayOfWeek, type, AlarmReceiver.intent(context, course.id, type, trigger.classDate))
 
-        val triggerTime = when (type) {
-            AlarmType.PRE_CLASS -> course.classTime.minusMinutes(course.reminderMinutesBefore.toLong())
-            AlarmType.POST_CLASS -> course.classTime.plusMinutes(course.classDurationMinutes.toLong())
+        if (canScheduleExact()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, operation)
+        } else {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, operation)
         }
-        val triggerAt = nextOccurrence(dayOfWeek, triggerTime, LocalDateTime.now())
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            triggerAt,
-            pendingIntent(course.id, dayOfWeek, type),
-        )
     }
 
     override fun cancelForCourse(course: Course) {
         course.scheduleDays.forEach { day ->
             AlarmType.entries.forEach { type ->
-                alarmManager.cancel(pendingIntent(course.id, day, type))
+                alarmManager.cancel(pendingIntent(course.id, day, type, AlarmReceiver.intent(context, course.id, type)))
             }
         }
     }
@@ -55,19 +48,13 @@ class AndroidAlarmScheduler @Inject constructor(
         courses.forEach(::scheduleForCourse)
     }
 
-    private fun nextOccurrence(
+    private fun pendingIntent(
+        courseId: Long,
         dayOfWeek: DayOfWeek,
-        time: LocalTime,
-        from: LocalDateTime,
-    ): LocalDateTime {
-        val daysAhead = (dayOfWeek.value - from.dayOfWeek.value + DAYS_IN_WEEK) % DAYS_IN_WEEK
-        val candidate = LocalDateTime.of(from.toLocalDate().plusDays(daysAhead.toLong()), time)
-        return if (candidate.isAfter(from)) candidate else candidate.plusWeeks(1)
-    }
-
-    private fun pendingIntent(courseId: Long, dayOfWeek: DayOfWeek, type: AlarmType): PendingIntent {
+        type: AlarmType,
+        intent: Intent,
+    ): PendingIntent {
         val requestCode = (courseId * REQUEST_CODES_PER_COURSE + dayOfWeek.value * 2 + type.ordinal).toInt()
-        val intent = AlarmReceiver.intent(context, courseId, type)
         return PendingIntent.getBroadcast(
             context,
             requestCode,
@@ -80,7 +67,6 @@ class AndroidAlarmScheduler @Inject constructor(
         Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
 
     private companion object {
-        const val DAYS_IN_WEEK = 7
         const val REQUEST_CODES_PER_COURSE = 14
     }
 }

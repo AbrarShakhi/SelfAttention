@@ -19,7 +19,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, NotificationChannels.CHANNEL_REMINDER)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Class starting soon")
-            .setContentText("$courseName ($code) is about to begin")
+            .setContentText("${courseLabel(courseName, code)} is about to begin")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(openCourseIntent(context, courseId))
@@ -53,7 +53,7 @@ object NotificationHelper {
         val notification = NotificationCompat.Builder(context, NotificationChannels.CHANNEL_ATTENDANCE)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Mark your attendance")
-            .setContentText("$courseName ($code) — how was class?")
+            .setContentText("${courseLabel(courseName, code)} — how was class?")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(openCourseIntent(context, courseId))
@@ -77,6 +77,9 @@ object NotificationHelper {
             CourseDeepLink.intent(context, courseId),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+
+    private fun courseLabel(name: String, code: String): String =
+        if (code.isBlank()) name else "$name ($code)"
 
     private fun notify(context: Context, id: Int, notification: Notification) {
         context.getSystemService(NotificationManager::class.java).notify(id, notification)
