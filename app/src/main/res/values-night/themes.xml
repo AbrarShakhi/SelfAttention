@@ -2,7 +2,6 @@
 <resources>
 
     <style name="Theme.SelfAttention" parent="android:Theme.Material.NoActionBar">
-        <!-- neutral T6 — matches DarkColors.background -->
         <item name="android:windowBackground">#FF111418</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

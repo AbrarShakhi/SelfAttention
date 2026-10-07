@@ -65,32 +65,25 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 
-    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
     implementation(libs.hilt.navigation.compose)
 
-    // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Navigation3
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
     implementation(libs.lifecycle.viewmodel.navigation3)
 
-    // Kotlin Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    // DataStore
     implementation(libs.datastore.preferences)
 
-    // Google Fonts for Compose
     implementation(libs.compose.google.fonts)
 
-    // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)

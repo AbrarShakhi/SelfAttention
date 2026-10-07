@@ -31,15 +31,15 @@
         </activity>
 
         <receiver
-            android:name=".notification.AlarmReceiver"
+            android:name=".core.alarm.AlarmReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".notification.AttendanceActionReceiver"
+            android:name=".core.notification.AttendanceActionReceiver"
             android:exported="false" />
 
         <receiver
-            android:name=".notification.BootReceiver"
+            android:name=".core.alarm.BootReceiver"
             android:exported="true">
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

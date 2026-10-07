@@ -1,7 +1,7 @@
 package com.abrarshakhi.selfattention
 
 import android.app.Application
-import com.abrarshakhi.selfattention.notification.NotificationChannels
+import com.abrarshakhi.selfattention.core.notification.NotificationChannels
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

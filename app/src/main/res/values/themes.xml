@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!--
-      The window theme only governs the starting window, before Compose draws. Keeping
-      android:windowBackground in step with the Compose scheme's background is what removes the
-      launch flash; values-night/ carries the dark counterpart.
-
-      There is no android:Theme.DeviceDefault.DayNight.NoActionBar in the framework (DayNight has
-      no NoActionBar child), and com.google.android.material is not a dependency, so day/night is
-      handled by resource qualification rather than a DayNight parent.
-    -->
     <style name="Theme.SelfAttention" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- neutral T98 — matches LightColors.background -->
         <item name="android:windowBackground">#FFF8F9FF</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

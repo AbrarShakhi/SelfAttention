@@ -75,7 +75,7 @@ installation; otherwise it is under *Settings → Apps → Special app access �
 
 | | |
 |---|---|
-| JDK | 21 (the Gradle daemon toolchain; Kotlin itself compiles at 11) |
+| JDK | 25 (the Gradle daemon toolchain, provided by `mise.toml`; bytecode targets 11) |
 | Android SDK | API 37.1 (`compileSdk`), build-tools 37.0.0 |
 | Minimum device | Android 11 (API 30) |
 | Target | API 37 |
@@ -90,10 +90,11 @@ cd SelfAttention
 ./gradlew assembleDebug
 ```
 
-> **`JAVA_HOME` must point at a JDK 21.** The wrapper otherwise fails with
+> **A JDK 25 must be on the path.** The wrapper otherwise fails with
 > `JAVA_HOME is not set and no 'java' command could be found in your PATH`. This matches
-> `gradle/gradle-daemon-jvm.properties` (`toolchainVersion=21`). Android Studio supplies this
-> automatically; from a terminal, export it first.
+> `gradle/gradle-daemon-jvm.properties` (`toolchainVersion=25`). The repository's `mise.toml`
+> provides it — run `mise install` once, then build from a mise-activated shell or with
+> `mise exec -- ./gradlew …`. In Android Studio, set the Gradle JDK to any JDK 25.
 
 ### Common tasks
 
@@ -137,15 +138,24 @@ Test names are backtick sentences, so quote the whole pattern and wrap the metho
 
 ## Architecture
 
-Three layers with a strict dependency direction — `presentation → domain ← data`.
+A single module organised by package, following Google's app-architecture guide — UI layer, an
+optional domain layer of use cases, and a data layer.
 
 ```
 app/src/main/java/com/abrarshakhi/selfattention/
-├── domain/          Pure JVM. Models, repository interfaces, use cases. No Android imports.
-├── data/            Room database, DataStore, alarm scheduling, JSON backup codec.
-├── presentation/    Compose UI: screens, shared components, navigation, theme.
-├── notification/    Broadcast receivers for alarms, notification actions, and boot.
-└── di/              Hilt wiring.
+├── feature/         One package per feature: screen, ViewModel and UI state.
+├── navigation/      Routes, the Navigation 3 graph and top-level destinations.
+├── ui/              The app shell: outer Scaffold and navigation bar.
+└── core/
+    ├── model/         Plain Kotlin models.
+    ├── domain/        Use cases.
+    ├── data/          Repositories, backup codec and file store.
+    ├── database/      Room database, DAOs and entities.
+    ├── datastore/     Preferences DataStore.
+    ├── alarm/         Exact-alarm scheduling and its receivers.
+    ├── notification/  Notification channels and actions.
+    ├── designsystem/  Theme and generic components.
+    └── ui/            Shared app-specific UI.
 ```
 
 **Stack**
@@ -164,8 +174,9 @@ A few conventions worth knowing before contributing:
 
 - **Navigation 3, not `NavController`.** The back stack is a `SnapshotStateList<AppRoute>` mutated
   only through the extensions in `navigation/BackStackController.kt`.
-- **Screens are content-only.** The single `Scaffold` lives in `AppRoot`; each route declares its
-  app bar, FAB, and bottom bar through `ScreenChrome`.
+- **Two-layer `Scaffold`.** The outer `Scaffold` in `AppRoot` owns only the bottom navigation bar
+  and consumes its padding; every screen owns an inner `Scaffold` with its own top app bar, FAB,
+  and scroll behaviour.
 - **No `java.time` type crosses the Room boundary.** Clock times are `Int` columns, dates are
   `epochDay` longs, and enums persist as strings.
 
