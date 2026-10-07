@@ -1,28 +1,25 @@
 package com.abrarshakhi.selfattention.feature.course.edit
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.rounded.DeleteForever
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,20 +28,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.core.designsystem.component.DetailTopAppBar
-import com.abrarshakhi.selfattention.core.designsystem.component.WarningBanner
+import com.abrarshakhi.selfattention.core.designsystem.component.LoadingContent
 import com.abrarshakhi.selfattention.core.ui.permission.rememberNotificationPermissionState
 import com.abrarshakhi.selfattention.feature.course.form.CourseForm
+import com.abrarshakhi.selfattention.feature.course.form.FormActionBar
+import com.abrarshakhi.selfattention.feature.course.form.NotificationWarning
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CourseEditorScreen(
     courseId: Long,
@@ -55,135 +53,89 @@ fun CourseEditorScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val notifications = rememberNotificationPermissionState()
-    var confirmDelete by remember { mutableStateOf(false) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(courseId) { viewModel.load(courseId) }
     LaunchedEffect(state.saved) { if (state.saved) onSaved() }
     LaunchedEffect(state.deleted) { if (state.deleted) onDeleted() }
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             DetailTopAppBar(
                 title = "Edit course",
+                subtitle = state.form.name.takeIf { it.isNotBlank() },
                 onNavigateUp = onNavigateUp,
                 scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(
+                        onClick = { confirmDelete = true },
+                        enabled = !state.isLoading && !state.isSaving,
+                        shapes = IconButtonDefaults.shapes(),
+                    ) {
+                        Icon(Icons.Rounded.DeleteOutline, contentDescription = "Delete course")
+                    }
+                },
             )
+        },
+        bottomBar = {
+            if (!state.isLoading) {
+                FormActionBar(
+                    confirmLabel = "Save changes",
+                    canConfirm = state.form.canSave,
+                    isWorking = state.isSaving,
+                    onConfirm = viewModel::save,
+                    onCancel = onNavigateUp,
+                )
+            }
         },
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { innerPadding ->
         if (state.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
+            LoadingContent(modifier = Modifier.padding(innerPadding))
             return@Scaffold
         }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            if (state.hasReminder && !notifications.isGranted) {
-                WarningBanner(
-                    icon = Icons.Default.NotificationsOff,
-                    title = "Notifications are off",
-                    message = "Changes will be saved, but reminders won't appear until you allow " +
-                        "notifications.",
-                    actionLabel = if (notifications.mustUseSettings) "Open settings" else "Allow",
-                    onAction = notifications.request,
-                )
-            }
-
+            if (state.form.hasReminder && !notifications.isGranted) NotificationWarning(notifications)
             CourseForm(
-                name = state.name,
-                code = state.code,
-                selectedDays = state.selectedDays,
-                classHour = state.classHour,
-                classMinute = state.classMinute,
-                hasReminder = state.hasReminder,
-                reminderMinutesBefore = state.reminderMinutesBefore,
-                onNameChange = viewModel::onNameChange,
-                onCodeChange = viewModel::onCodeChange,
-                onToggleDay = viewModel::toggleDay,
-                onTimeChange = viewModel::onTimeChange,
-                onReminderToggle = { enabled ->
-                    viewModel.onReminderToggle(enabled)
-                    if (enabled && !notifications.isGranted) notifications.request()
-                },
-                onReminderMinutesChange = viewModel::onReminderMinutesChange,
+                state = state.form,
+                onEvent = viewModel::onFormEvent,
+                onReminderEnabled = { if (!notifications.isGranted) notifications.request() },
+                courseId = state.courseId,
             )
-
-            state.error?.let { err ->
-                Text(
-                    text = err,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            state.error?.let {
+                Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
-
-            Spacer(Modifier.height(8.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = onNavigateUp,
-                    modifier = Modifier.weight(1f),
-                    enabled = !state.isSaving,
-                ) { Text("Cancel") }
-                Button(
-                    onClick = viewModel::save,
-                    modifier = Modifier.weight(1f),
-                    enabled = state.canSave && !state.isSaving,
-                ) { Text(if (state.isSaving) "Saving…" else "Save") }
-            }
-
-            OutlinedButton(
-                onClick = { confirmDelete = true },
-                enabled = !state.isSaving,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error,
-                ),
-            ) {
-                Icon(Icons.Default.Delete, contentDescription = null)
-                Spacer(Modifier.height(0.dp))
-                Text("  Delete course")
-            }
-
-            Spacer(Modifier.height(16.dp))
         }
     }
 
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
+            icon = { Icon(Icons.Rounded.DeleteForever, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
             title = { Text("Delete this course?") },
-            text = {
-                Text(
-                    "Its attendance history will be deleted too and its reminders cancelled. " +
-                        "This can't be undone.",
-                )
-            },
+            text = { Text("Its attendance history will be deleted and its reminders cancelled. This can't be undone.") },
             confirmButton = {
-                TextButton(
-                    onClick = { confirmDelete = false; viewModel.delete() },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error,
+                Button(
+                    onClick = {
+                        confirmDelete = false
+                        viewModel.delete()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
                     ),
                 ) { Text("Delete") }
             },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) { Text("Cancel") }
-            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Keep") } },
         )
     }
 }

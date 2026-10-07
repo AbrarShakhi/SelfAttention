@@ -1,5 +1,6 @@
 package com.abrarshakhi.selfattention.feature.timeline.component
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -7,6 +8,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,12 +29,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,8 +48,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
@@ -74,27 +87,31 @@ fun ExpandableCalendar(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onPreviousMonth) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    contentDescription = "Previous month",
+            FilledTonalIconButton(onClick = onPreviousMonth, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, contentDescription = "Previous month")
+            }
+            AnimatedContent(
+                targetState = visibleMonth,
+                modifier = Modifier.weight(1f),
+                transitionSpec = {
+                    val direction = if (targetState > initialState) 1 else -1
+                    (slideInHorizontally { direction * it / 3 } + fadeIn()) togetherWith
+                        (slideOutHorizontally { -direction * it / 3 } + fadeOut())
+                },
+                label = "timelineMonth",
+            ) { month ->
+                Text(
+                    text = "${month.month.getDisplayName(TextStyle.FULL, locale)} ${month.year}",
+                    style = MaterialTheme.typography.titleLargeEmphasized,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Text(
-                text = "${visibleMonth.month.getDisplayName(TextStyle.FULL, locale)} " +
-                    "${visibleMonth.year}",
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = onNextMonth) {
-                Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Next month",
-                )
+            FilledTonalIconButton(onClick = onNextMonth, shapes = IconButtonDefaults.shapes()) {
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = "Next month")
             }
         }
-
+        Spacer(Modifier.height(8.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
             weekdayOrder(weekStart).forEach { dow ->
                 Text(
@@ -201,6 +218,7 @@ private fun MonthGrid(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DayCell(
     date: LocalDate,
@@ -211,58 +229,59 @@ private fun DayCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val container = when {
-        isSelected -> MaterialTheme.colorScheme.primary
-        isToday -> MaterialTheme.colorScheme.primaryContainer
-        else -> Color.Transparent
-    }
+    val selection by animateFloatAsState(
+        targetValue = if (isSelected) 1f else 0f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "daySelection",
+    )
+    val selectedShape = MaterialShapes.Cookie9Sided.toShape()
     val content = when {
         isSelected -> MaterialTheme.colorScheme.onPrimary
-        isToday -> MaterialTheme.colorScheme.onPrimaryContainer
-        isOutsideMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        isToday -> MaterialTheme.colorScheme.primary
+        isOutsideMonth -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
         else -> MaterialTheme.colorScheme.onSurface
     }
+    val dotColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.tertiary
 
     Box(
-        modifier = modifier.aspectRatio(1f),
+        modifier = modifier
+            .aspectRatio(1f)
+            .padding(3.dp)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Surface(
-            onClick = onClick,
-            modifier = Modifier
-                .size(40.dp)
-                .padding(2.dp),
-            shape = CircleShape,
-            color = container,
-            contentColor = content,
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                )
-                if (classCount > 0) {
-                    Spacer(Modifier.height(2.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(4.dp)
-                            .clearAndSetSemantics { },
-                    ) {
-                        Surface(
-                            modifier = Modifier.fillMaxSize(),
-                            shape = CircleShape,
-                            color = if (isSelected) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            },
-                            content = {},
-                        )
+        if (selection > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scale(0.6f + 0.4f * selection)
+                    .rotate(45f * selection)
+                    .background(MaterialTheme.colorScheme.primary, selectedShape),
+            )
+        }
+        if (isToday && !isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = date.dayOfMonth.toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
+                color = content,
+            )
+            if (classCount > 0) {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .clearAndSetSemantics { },
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    repeat(classCount.coerceAtMost(3)) {
+                        Box(Modifier.size(4.dp).background(dotColor, CircleShape))
                     }
                 }
             }

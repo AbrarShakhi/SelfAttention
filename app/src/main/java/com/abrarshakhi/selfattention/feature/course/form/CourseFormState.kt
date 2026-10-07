@@ -36,16 +36,8 @@ data class CourseFormState(
         reminderMinutesBefore = reminderMinutesBefore,
     )
 
-    fun toNewCourse(): Course = Course(
-        name = name.trim(),
-        code = code.trim(),
-        scheduleDays = days.sortedBy { it.value },
-        classHour = classTime.hour,
-        classMinute = classTime.minute,
-        classDurationMinutes = durationMinutes,
-        hasReminder = hasReminder,
-        reminderMinutesBefore = reminderMinutesBefore,
-    )
+    fun toNewCourse(): Course =
+        applyTo(Course(name = "", code = "", scheduleDays = emptyList(), classHour = 0, classMinute = 0))
 
     companion object {
         val DurationOptions = listOf(45, 60, 90, 120)

@@ -6,12 +6,15 @@ import com.abrarshakhi.selfattention.core.domain.course.DeleteCourseUseCase
 import com.abrarshakhi.selfattention.core.domain.course.GetCourseByIdUseCase
 import com.abrarshakhi.selfattention.core.domain.course.UpdateCourseUseCase
 import com.abrarshakhi.selfattention.core.model.Course
+import com.abrarshakhi.selfattention.feature.course.form.CourseFormEvent
+import com.abrarshakhi.selfattention.feature.course.form.CourseFormState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,14 +25,12 @@ class CourseEditorViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CourseEditorUiState())
-    val state: StateFlow<CourseEditorUiState> = _state
+    val state: StateFlow<CourseEditorUiState> = _state.asStateFlow()
 
     private var original: Course? = null
-    private var loadStarted = false
 
     fun load(courseId: Long) {
-        if (loadStarted) return
-        loadStarted = true
+        if (original?.id == courseId) return
         viewModelScope.launch {
             val course = getCourseById(courseId)
             if (course == null) {
@@ -38,72 +39,41 @@ class CourseEditorViewModel @Inject constructor(
             }
             original = course
             _state.update {
-                it.copy(
-                    name = course.name,
-                    code = course.code,
-                    selectedDays = course.scheduleDays.toSet(),
-                    classHour = course.classHour,
-                    classMinute = course.classMinute,
-                    hasReminder = course.hasReminder,
-                    reminderMinutesBefore = course.reminderMinutesBefore,
-                    isLoading = false,
-                )
+                it.copy(courseId = course.id, form = CourseFormState.from(course), isLoading = false)
             }
         }
     }
 
-    fun onNameChange(value: String) = _state.update { it.copy(name = value) }
-    fun onCodeChange(value: String) = _state.update { it.copy(code = value) }
-
-    fun toggleDay(day: DayOfWeek) = _state.update {
-        val days = it.selectedDays.toMutableSet()
-        if (!days.add(day)) days.remove(day)
-        it.copy(selectedDays = days)
+    fun onFormEvent(event: CourseFormEvent) {
+        _state.update { it.copy(form = it.form.reduce(event), error = null) }
     }
-
-    fun onTimeChange(hour: Int, minute: Int) =
-        _state.update { it.copy(classHour = hour, classMinute = minute) }
-
-    fun onReminderToggle(enabled: Boolean) = _state.update { it.copy(hasReminder = enabled) }
-
-    fun onReminderMinutesChange(minutes: Int) =
-        _state.update { it.copy(reminderMinutesBefore = minutes) }
 
     fun save() {
-        val current = original ?: return
-        val s = _state.value
-        if (!s.canSave || s.isSaving) return
-        _state.update { it.copy(isSaving = true, error = null) }
-        viewModelScope.launch {
-            try {
-                updateCourse(
-                    current.copy(
-                        name = s.name.trim(),
-                        code = s.code.trim(),
-                        scheduleDays = s.selectedDays.sortedBy { day -> day.value },
-                        classHour = s.classHour,
-                        classMinute = s.classMinute,
-                        hasReminder = s.hasReminder,
-                        reminderMinutesBefore = s.reminderMinutesBefore,
-                    ),
-                )
-                _state.update { it.copy(isSaving = false, saved = true) }
-            } catch (e: Exception) {
-                _state.update { it.copy(isSaving = false, error = e.message ?: "Could not save") }
-            }
-        }
+        val course = original ?: return
+        val current = _state.value
+        if (!current.form.canSave || current.isSaving) return
+        perform(onSuccess = { it.copy(saved = true) }) { updateCourse(current.form.applyTo(course)) }
     }
 
     fun delete() {
-        val current = original ?: return
+        val course = original ?: return
         if (_state.value.isSaving) return
+        perform(onSuccess = { it.copy(deleted = true) }) { deleteCourse(course) }
+    }
+
+    private fun perform(
+        onSuccess: (CourseEditorUiState) -> CourseEditorUiState,
+        action: suspend () -> Unit,
+    ) {
         _state.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
             try {
-                deleteCourse(current)
-                _state.update { it.copy(isSaving = false, deleted = true) }
+                action()
+                _state.update { onSuccess(it.copy(isSaving = false)) }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _state.update { it.copy(isSaving = false, error = e.message ?: "Could not delete") }
+                _state.update { it.copy(isSaving = false, error = e.message ?: "Something went wrong") }
             }
         }
     }

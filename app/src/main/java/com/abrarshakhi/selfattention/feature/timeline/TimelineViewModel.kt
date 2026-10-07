@@ -2,18 +2,22 @@ package com.abrarshakhi.selfattention.feature.timeline
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.abrarshakhi.selfattention.core.data.repository.AttendanceRepository
+import com.abrarshakhi.selfattention.core.common.time.TimeTicker
 import com.abrarshakhi.selfattention.core.data.repository.SettingsRepository
+import com.abrarshakhi.selfattention.core.domain.attendance.GetScheduleForDateUseCase
+import com.abrarshakhi.selfattention.core.domain.attendance.MarkAttendanceUseCase
 import com.abrarshakhi.selfattention.core.domain.course.GetCoursesUseCase
-import com.abrarshakhi.selfattention.core.model.AppSettings
-import com.abrarshakhi.selfattention.core.model.meetsOn
+import com.abrarshakhi.selfattention.core.model.AttendanceStatus
+import com.abrarshakhi.selfattention.core.model.ScheduledClass
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -23,74 +27,59 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TimelineViewModel @Inject constructor(
-    private val getCourses: GetCoursesUseCase,
-    private val attendanceRepository: AttendanceRepository,
-    private val settingsRepository: SettingsRepository,
+    getCourses: GetCoursesUseCase,
+    getSchedule: GetScheduleForDateUseCase,
+    settingsRepository: SettingsRepository,
+    timeTicker: TimeTicker,
+    private val markAttendance: MarkAttendanceUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(TimelineUiState())
-    val state: StateFlow<TimelineUiState> = _state
-
     private val selectedDay = MutableStateFlow(LocalDate.now())
+    private val visibleMonth = MutableStateFlow(YearMonth.now())
 
-    init {
-        viewModelScope.launch {
-            selectedDay
-                .flatMapLatest { date ->
-                    combine(
-                        getCourses(),
-                        attendanceRepository.getAttendanceForDate(date),
-                        settingsRepository.getSettings(),
-                    ) { courses, records, settings ->
-                        val recordsByCourse = records.associateBy { it.courseId }
-                        val classes = courses
-                            .filter { it.meetsOn(date, settings.weeklyHolidays) }
-                            .sortedBy { it.classHour * 60 + it.classMinute }
-                            .map { course ->
-                                ScheduledClass(
-                                    course = course,
-                                    date = date,
-                                    record = recordsByCourse[course.id],
-                                )
-                            }
-                        val counts = DayOfWeek.entries
-                            .associateWith { dow -> courses.count { dow in it.scheduleDays } }
-                            .filterValues { it > 0 }
-                        DayLoad(date, classes, counts, settings)
-                    }
-                }
-                .collect { load ->
-                    _state.update {
-                        it.copy(
-                            selectedDay = load.date,
-                            classesForDay = load.classes,
-                            classCountByWeekday = load.counts,
-                            weekStartDay = load.settings.weekStartDay,
-                            weeklyHolidays = load.settings.weeklyHolidays,
-                            isLoading = false,
-                        )
-                    }
-                }
-        }
-    }
+    val state: StateFlow<TimelineUiState> = combine(
+        combine(selectedDay, visibleMonth, ::Pair),
+        selectedDay.flatMapLatest { day -> getSchedule(day).map { DaySchedule(day, it) } },
+        getCourses(),
+        settingsRepository.getSettings(),
+        timeTicker.minutes,
+    ) { (day, month), schedule, courses, settings, now ->
+        TimelineUiState(
+            selectedDay = day,
+            visibleMonth = month,
+            schedule = schedule,
+            classCountByWeekday = DayOfWeek.entries
+                .associateWith { weekday -> courses.count { weekday in it.scheduleDays } }
+                .filterValues { it > 0 },
+            weekStartDay = settings.weekStartDay,
+            weeklyHolidays = settings.weeklyHolidays,
+            now = now,
+            isLoading = false,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState())
 
     fun selectDay(date: LocalDate) {
-        _state.update { it.copy(selectedDay = date, visibleMonth = YearMonth.from(date)) }
         selectedDay.value = date
+        visibleMonth.value = YearMonth.from(date)
     }
 
-    fun showPreviousMonth() =
-        _state.update { it.copy(visibleMonth = it.visibleMonth.minusMonths(1)) }
+    fun showPreviousMonth() {
+        visibleMonth.value = visibleMonth.value.minusMonths(1)
+    }
 
-    fun showNextMonth() =
-        _state.update { it.copy(visibleMonth = it.visibleMonth.plusMonths(1)) }
+    fun showNextMonth() {
+        visibleMonth.value = visibleMonth.value.plusMonths(1)
+    }
 
     fun showToday() = selectDay(LocalDate.now())
 
-    private data class DayLoad(
-        val date: LocalDate,
-        val classes: List<ScheduledClass>,
-        val counts: Map<DayOfWeek, Int>,
-        val settings: AppSettings,
-    )
+    fun mark(scheduled: ScheduledClass, status: AttendanceStatus?) {
+        viewModelScope.launch {
+            if (status == null) {
+                markAttendance.clear(scheduled.course.id, scheduled.date)
+            } else {
+                markAttendance(scheduled.course.id, scheduled.date, status)
+            }
+        }
+    }
 }

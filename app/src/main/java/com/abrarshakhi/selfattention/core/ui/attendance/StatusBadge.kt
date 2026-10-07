@@ -21,7 +21,11 @@ import com.abrarshakhi.selfattention.core.designsystem.theme.forStatus
 import com.abrarshakhi.selfattention.core.model.AttendanceStatus
 
 @Composable
-fun StatusBadge(status: AttendanceStatus?, modifier: Modifier = Modifier) {
+fun StatusBadge(
+    status: AttendanceStatus?,
+    modifier: Modifier = Modifier,
+    emptyLabel: String = "Unmarked",
+) {
     val palette = status?.let { AppTheme.status.forStatus(it) }
     val container by animateColorAsState(
         palette?.colorContainer ?: MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -42,7 +46,7 @@ fun StatusBadge(status: AttendanceStatus?, modifier: Modifier = Modifier) {
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
             )
-            Text(text = status?.label ?: "Unmarked", style = MaterialTheme.typography.labelMedium)
+            Text(text = status?.label ?: emptyLabel, style = MaterialTheme.typography.labelMedium)
         }
     }
 }

@@ -1,21 +1,13 @@
 package com.abrarshakhi.selfattention.feature.course.edit
 
-import java.time.DayOfWeek
+import com.abrarshakhi.selfattention.feature.course.form.CourseFormState
 
 data class CourseEditorUiState(
-    val name: String = "",
-    val code: String = "",
-    val selectedDays: Set<DayOfWeek> = emptySet(),
-    val classHour: Int = 9,
-    val classMinute: Int = 0,
-    val hasReminder: Boolean = false,
-    val reminderMinutesBefore: Int = 30,
+    val courseId: Long = 0,
+    val form: CourseFormState = CourseFormState(),
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
     val deleted: Boolean = false,
     val error: String? = null,
-) {
-    val canSave: Boolean
-        get() = name.isNotBlank() && selectedDays.isNotEmpty()
-}
+)

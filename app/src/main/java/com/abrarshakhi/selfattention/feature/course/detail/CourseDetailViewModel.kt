@@ -105,20 +105,11 @@ class CourseDetailViewModel @Inject constructor(
 
     fun closeSheet() = _state.update { it.copy(sheetDate = null) }
 
-    fun mark(status: AttendanceStatus) {
+    fun mark(status: AttendanceStatus?) {
         val date = _state.value.sheetDate ?: return
         val courseId = _state.value.course?.id ?: return
         viewModelScope.launch {
-            markAttendance(courseId, date, status)
-            closeSheet()
-        }
-    }
-
-    fun clear() {
-        val date = _state.value.sheetDate ?: return
-        val courseId = _state.value.course?.id ?: return
-        viewModelScope.launch {
-            markAttendance.clear(courseId, date)
+            if (status == null) markAttendance.clear(courseId, date) else markAttendance(courseId, date, status)
             closeSheet()
         }
     }
