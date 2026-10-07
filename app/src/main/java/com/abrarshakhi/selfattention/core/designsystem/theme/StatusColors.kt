@@ -6,6 +6,9 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.abrarshakhi.selfattention.core.model.AttendanceStatus
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.ktx.harmonize
 
 @Immutable
 data class StatusColor(
@@ -22,49 +25,29 @@ data class StatusColors(
     val holiday: StatusColor,
 )
 
-internal val LightStatusColors = StatusColors(
-    present = StatusColor(
-        color = Color(0xFF38692E),
-        onColor = Color(0xFFFFFFFF),
-        colorContainer = Color(0xFFB9F1A8),
-        onColorContainer = Color(0xFF002200),
-    ),
-    absent = StatusColor(
-        color = Color(0xFFA33C37),
-        onColor = Color(0xFFFFFFFF),
-        colorContainer = Color(0xFFFFDAD5),
-        onColorContainer = Color(0xFF410003),
-    ),
-    holiday = StatusColor(
-        color = Color(0xFF815600),
-        onColor = Color(0xFFFFFFFF),
-        colorContainer = Color(0xFFFFDDAA),
-        onColorContainer = Color(0xFF281800),
-    ),
+internal fun statusColors(primary: Color, isDark: Boolean): StatusColors = StatusColors(
+    present = statusColor(PresentSeed, primary, isDark),
+    absent = statusColor(AbsentSeed, primary, isDark),
+    holiday = statusColor(HolidaySeed, primary, isDark),
 )
 
-internal val DarkStatusColors = StatusColors(
-    present = StatusColor(
-        color = Color(0xFF9ED58E),
-        onColor = Color(0xFF063904),
-        colorContainer = Color(0xFF205119),
-        onColorContainer = Color(0xFFB9F1A8),
-    ),
-    absent = StatusColor(
-        color = Color(0xFFFFB3AA),
-        onColor = Color(0xFF630C0E),
-        colorContainer = Color(0xFF832522),
-        onColorContainer = Color(0xFFFFDAD5),
-    ),
-    holiday = StatusColor(
-        color = Color(0xFFF9BC58),
-        onColor = Color(0xFF442B00),
-        colorContainer = Color(0xFF614000),
-        onColorContainer = Color(0xFFFFDDAA),
-    ),
-)
+private fun statusColor(seed: Color, primary: Color, isDark: Boolean): StatusColor {
+    val scheme = dynamicColorScheme(
+        seedColor = seed.harmonize(primary),
+        isDark = isDark,
+        style = PaletteStyle.Fidelity,
+    )
+    return StatusColor(
+        color = scheme.primary,
+        onColor = scheme.onPrimary,
+        colorContainer = scheme.primaryContainer,
+        onColorContainer = scheme.onPrimaryContainer,
+    )
+}
 
-val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+val LocalStatusColors = staticCompositionLocalOf {
+    statusColors(primary = SeedColors.first(), isDark = false)
+}
 
 object AppTheme {
     val status: StatusColors

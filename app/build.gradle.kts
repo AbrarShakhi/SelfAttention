@@ -83,6 +83,10 @@ dependencies {
     implementation(libs.datastore.preferences)
 
     implementation(libs.compose.google.fonts)
+    implementation(libs.material.kolor)
+    implementation(libs.lottie.compose)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

@@ -2,6 +2,7 @@ package com.abrarshakhi.selfattention.core.data.repository
 
 import com.abrarshakhi.selfattention.core.model.AppFont
 import com.abrarshakhi.selfattention.core.model.AppSettings
+import com.abrarshakhi.selfattention.core.model.ColorStyle
 import com.abrarshakhi.selfattention.core.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 import java.time.DayOfWeek
@@ -12,5 +13,9 @@ interface SettingsRepository {
     suspend fun toggleWeeklyHoliday(day: DayOfWeek)
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setAppFont(font: AppFont)
+    suspend fun setUseWallpaperColors(enabled: Boolean)
+    suspend fun setSeedColor(argb: Int)
+    suspend fun setColorStyle(style: ColorStyle)
+    suspend fun setPureBlack(enabled: Boolean)
     suspend fun setOnboardingComplete()
 }

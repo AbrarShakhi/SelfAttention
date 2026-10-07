@@ -7,6 +7,7 @@ data class AppSettings(
     val weeklyHolidays: Set<DayOfWeek> = setOf(DayOfWeek.SUNDAY),
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val appFont: AppFont = AppFont.Default,
+    val colorPreferences: ColorPreferences = ColorPreferences(),
     val hasCompletedOnboarding: Boolean = false,
 )
 

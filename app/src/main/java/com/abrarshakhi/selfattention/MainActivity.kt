@@ -39,7 +39,11 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
             }
 
-            SelfAttentionTheme(themeMode = settings.themeMode, appFont = settings.appFont) {
+            SelfAttentionTheme(
+                themeMode = settings.themeMode,
+                appFont = settings.appFont,
+                colors = settings.colorPreferences,
+            ) {
                 AppRoot(
                     startRoute = if (settings.hasCompletedOnboarding) AppRoute.Home else AppRoute.Onboarding,
                 )

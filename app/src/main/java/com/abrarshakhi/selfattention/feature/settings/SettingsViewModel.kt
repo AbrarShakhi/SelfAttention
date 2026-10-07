@@ -6,6 +6,7 @@ import com.abrarshakhi.selfattention.core.data.repository.SettingsRepository
 import com.abrarshakhi.selfattention.core.domain.backup.ExportBackupUseCase
 import com.abrarshakhi.selfattention.core.domain.backup.ImportBackupUseCase
 import com.abrarshakhi.selfattention.core.model.AppFont
+import com.abrarshakhi.selfattention.core.model.ColorStyle
 import com.abrarshakhi.selfattention.core.model.ThemeMode
 import com.abrarshakhi.selfattention.core.ui.backup.BackupMessage
 import com.abrarshakhi.selfattention.core.ui.backup.toBackupMessage
@@ -46,6 +47,22 @@ class SettingsViewModel @Inject constructor(
 
     fun setAppFont(font: AppFont) {
         viewModelScope.launch { settingsRepository.setAppFont(font) }
+    }
+
+    fun setUseWallpaperColors(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setUseWallpaperColors(enabled) }
+    }
+
+    fun setSeedColor(argb: Int) {
+        viewModelScope.launch { settingsRepository.setSeedColor(argb) }
+    }
+
+    fun setColorStyle(style: ColorStyle) {
+        viewModelScope.launch { settingsRepository.setColorStyle(style) }
+    }
+
+    fun setPureBlack(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.setPureBlack(enabled) }
     }
 
     fun exportTo(uri: String) {

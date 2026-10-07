@@ -2,84 +2,80 @@ package com.abrarshakhi.selfattention.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.abrarshakhi.selfattention.core.common.time.TimeTicker
 import com.abrarshakhi.selfattention.core.data.repository.SettingsRepository
 import com.abrarshakhi.selfattention.core.domain.attendance.GetCourseStatsUseCase
 import com.abrarshakhi.selfattention.core.domain.attendance.GetNextClassUseCase
+import com.abrarshakhi.selfattention.core.domain.attendance.GetScheduleForDateUseCase
+import com.abrarshakhi.selfattention.core.domain.attendance.MarkAttendanceUseCase
 import com.abrarshakhi.selfattention.core.domain.course.GetCoursesUseCase
-import com.abrarshakhi.selfattention.core.model.Course
-import com.abrarshakhi.selfattention.core.model.CourseStats
+import com.abrarshakhi.selfattention.core.model.AttendanceStatus
 import com.abrarshakhi.selfattention.core.model.OverallStats
+import com.abrarshakhi.selfattention.core.model.ScheduledClass
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.DayOfWeek
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getCourses: GetCoursesUseCase,
+    getCourses: GetCoursesUseCase,
     private val getCourseStats: GetCourseStatsUseCase,
     private val getNextClass: GetNextClassUseCase,
-    private val settingsRepository: SettingsRepository,
+    private val getSchedule: GetScheduleForDateUseCase,
+    private val markAttendance: MarkAttendanceUseCase,
+    settingsRepository: SettingsRepository,
+    timeTicker: TimeTicker,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HomeUiState())
-    val state: StateFlow<HomeUiState> = _state
-
-    init {
-        observeData()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeData() {
-        viewModelScope.launch {
-            combine(getCourses(), settingsRepository.getSettings()) { courses, settings ->
-                courses to settings.weeklyHolidays
-            }.flatMapLatest { (courses, holidays) ->
-                if (courses.isEmpty()) {
-                    flowOf(
-                        HomeLoad(courses, emptyMap(), OverallStats(0, 0, 0f), holidays)
-                    )
-                } else {
-                    val statsFlows = courses.map { s -> getCourseStats(s) }
-                    combine(statsFlows) { statsArray ->
-                        val statsMap = statsArray.associateBy { it.courseId }
-                        val totalPresent = statsArray.sumOf { it.present }
-                        val totalAbsent = statsArray.sumOf { it.absent }
-                        val countable = totalPresent + totalAbsent
-                        val overall = OverallStats(
-                            totalPresent = totalPresent,
-                            totalAbsent = totalAbsent,
-                            attendancePercentage = if (countable == 0) 0f
-                            else totalPresent.toFloat() / countable,
-                        )
-                        HomeLoad(courses, statsMap, overall, holidays)
-                    }
-                }
-            }.collect { load ->
-                _state.update {
-                    it.copy(
-                        courses = load.courses,
-                        statsMap = load.stats,
-                        overallStats = load.overall,
-                        nextClass = getNextClass(load.courses, load.holidays),
-                        isLoading = false,
-                    )
-                }
+    private val summaries: Flow<List<CourseSummary>> = getCourses().flatMapLatest { courses ->
+        if (courses.isEmpty()) {
+            flowOf(emptyList())
+        } else {
+            combine(courses.map { course -> getCourseStats(course).map { CourseSummary(course, it) } }) {
+                it.toList()
             }
         }
     }
 
-    private data class HomeLoad(
-        val courses: List<Course>,
-        val stats: Map<Long, CourseStats>,
-        val overall: OverallStats,
-        val holidays: Set<DayOfWeek>,
-    )
+    private val todaySchedule: Flow<List<ScheduledClass>> = timeTicker.minutes
+        .map { it.toLocalDate() }
+        .distinctUntilChanged()
+        .flatMapLatest { getSchedule(it) }
+
+    val state: StateFlow<HomeUiState> = combine(
+        summaries,
+        todaySchedule,
+        settingsRepository.getSettings(),
+        timeTicker.minutes,
+    ) { courses, today, settings, now ->
+        HomeUiState(
+            isLoading = false,
+            now = now,
+            overall = OverallStats.of(courses.mapNotNull { it.stats }),
+            nextClass = getNextClass(courses.map { it.course }, settings.weeklyHolidays),
+            today = today,
+            courses = courses,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    fun mark(scheduled: ScheduledClass, status: AttendanceStatus?) {
+        viewModelScope.launch {
+            if (status == null) {
+                markAttendance.clear(scheduled.course.id, scheduled.date)
+            } else {
+                markAttendance(scheduled.course.id, scheduled.date, status)
+            }
+        }
+    }
 }

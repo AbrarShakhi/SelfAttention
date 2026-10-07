@@ -1,19 +1,23 @@
 package com.abrarshakhi.selfattention.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class TopLevelDestination(
     val route: AppRoute,
-    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
     val label: String,
 ) {
-    HOME(AppRoute.Home, Icons.Default.Home, "Home"),
-    TIMELINE(AppRoute.Timeline, Icons.Default.Timeline, "Timeline"),
-    SETTINGS(AppRoute.Settings, Icons.Default.Settings, "Settings"),
+    HOME(AppRoute.Home, Icons.Rounded.Home, Icons.Outlined.Home, "Home"),
+    TIMELINE(AppRoute.Timeline, Icons.Rounded.CalendarMonth, Icons.Outlined.CalendarMonth, "Timeline"),
+    SETTINGS(AppRoute.Settings, Icons.Rounded.Settings, Icons.Outlined.Settings, "Settings"),
     ;
 
     companion object {

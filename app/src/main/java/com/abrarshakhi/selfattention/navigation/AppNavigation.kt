@@ -23,10 +23,14 @@ fun AppNavigation(
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
+        onBack = { backStack.back() },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
+        transitionSpec = { forwardTransition() },
+        popTransitionSpec = { backwardTransition() },
+        predictivePopTransitionSpec = { backwardTransition() },
         entryProvider = entryProvider {
             entry<AppRoute.Onboarding> {
                 OnboardingScreen(
@@ -37,18 +41,18 @@ fun AppNavigation(
                     },
                 )
             }
-            entry<AppRoute.Home> {
+            entry<AppRoute.Home>(metadata = FadeThroughMetadata) {
                 HomeScreen(
                     onCourseClick = { backStack.navigateTo(AppRoute.CourseDetail(it)) },
                     onAddCourse = { backStack.navigateTo(AppRoute.AddCourse) },
                 )
             }
-            entry<AppRoute.Timeline> {
+            entry<AppRoute.Timeline>(metadata = FadeThroughMetadata) {
                 TimelineScreen(
                     onCourseClick = { backStack.navigateTo(AppRoute.CourseDetail(it)) },
                 )
             }
-            entry<AppRoute.Settings> {
+            entry<AppRoute.Settings>(metadata = FadeThroughMetadata) {
                 SettingsScreen()
             }
             entry<AppRoute.AddCourse> {

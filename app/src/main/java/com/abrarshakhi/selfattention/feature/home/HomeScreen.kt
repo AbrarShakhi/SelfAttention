@@ -1,67 +1,53 @@
 package com.abrarshakhi.selfattention.feature.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumExtendedFloatingActionButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLocale
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.abrarshakhi.selfattention.R
-import com.abrarshakhi.selfattention.core.designsystem.component.AttendanceRing
-import com.abrarshakhi.selfattention.core.designsystem.component.SectionLabel
-import com.abrarshakhi.selfattention.core.designsystem.theme.AppTheme
-import com.abrarshakhi.selfattention.core.model.NextClass
-import com.abrarshakhi.selfattention.core.model.OverallStats
+import com.abrarshakhi.selfattention.core.designsystem.component.EmptyState
+import com.abrarshakhi.selfattention.core.designsystem.component.LoadingContent
+import com.abrarshakhi.selfattention.core.designsystem.component.SectionHeader
+import com.abrarshakhi.selfattention.core.model.AttendanceStatus
+import com.abrarshakhi.selfattention.core.model.ScheduledClass
+import com.abrarshakhi.selfattention.core.ui.format.greetingFor
+import com.abrarshakhi.selfattention.core.ui.format.longLabel
 import com.abrarshakhi.selfattention.feature.home.component.CourseCard
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.time.temporal.ChronoUnit
-import java.util.Locale
+import com.abrarshakhi.selfattention.feature.home.component.NextClassCard
+import com.abrarshakhi.selfattention.feature.home.component.OverviewCard
+import com.abrarshakhi.selfattention.feature.home.component.TodayClassCard
 
-private const val AtRiskThreshold = 0.75f
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onCourseClick: (Long) -> Unit,
@@ -69,216 +55,144 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    HomeContent(
+        state = state,
+        onCourseClick = onCourseClick,
+        onAddCourse = onAddCourse,
+        onMark = viewModel::mark,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun HomeContent(
+    state: HomeUiState,
+    onCourseClick: (Long) -> Unit,
+    onAddCourse: () -> Unit,
+    onMark: (ScheduledClass, AttendanceStatus?) -> Unit,
+) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val listState = rememberLazyListState()
+    val fabExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { HomeTopAppBar(scrollBehavior = scrollBehavior) },
+        topBar = { HomeTopAppBar(state = state, scrollBehavior = scrollBehavior) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
-                text = { Text(text = "Add Course") },
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                onClick = onAddCourse,
-            )
+            if (state.courses.isNotEmpty()) {
+                MediumExtendedFloatingActionButton(
+                    text = { Text("Add course") },
+                    icon = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                    onClick = onAddCourse,
+                    expanded = fabExpanded,
+                )
+            }
         },
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { innerPadding ->
-        if (state.isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
-            return@Scaffold
-        }
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item(key = "overall") {
-                OverallCard(stats = state.overallStats)
-            }
-
-            state.nextClass?.let { next ->
-                item(key = "next") {
-                    NextClassCard(nextClass = next)
-                }
-            }
-
-            if (state.courses.isEmpty()) {
-                item(key = "empty") { EmptyState() }
-            } else {
-                item(key = "courses-header") {
-                    SectionLabel(
-                        text = "My courses",
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp),
-                    )
-                }
-                items(state.courses, key = { it.id }) { course ->
-                    CourseCard(
-                        course = course,
-                        stats = state.statsMap[course.id],
-                        onClick = { onCourseClick(course.id) },
-                    )
-                }
+        AnimatedContent(
+            targetState = state.isLoading,
+            modifier = Modifier.padding(innerPadding),
+            label = "homeLoading",
+        ) { loading ->
+            when {
+                loading -> LoadingContent()
+                state.courses.isEmpty() -> HomeEmpty(onAddCourse = onAddCourse)
+                else -> HomeList(
+                    state = state,
+                    listState = listState,
+                    onCourseClick = onCourseClick,
+                    onMark = onMark,
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun HomeTopAppBar(scrollBehavior: TopAppBarScrollBehavior) {
-    TopAppBar(
-        title = {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        },
+private fun HomeTopAppBar(state: HomeUiState, scrollBehavior: TopAppBarScrollBehavior) {
+    val locale = LocalLocale.current.platformLocale
+    LargeFlexibleTopAppBar(
+        title = { Text(greetingFor(state.now.toLocalTime())) },
+        subtitle = { Text(state.now.toLocalDate().longLabel(locale)) },
         scrollBehavior = scrollBehavior,
     )
 }
 
 @Composable
-private fun OverallCard(stats: OverallStats) {
-    val countable = stats.totalPresent + stats.totalAbsent
-    val atRisk = countable > 0 && stats.attendancePercentage < AtRiskThreshold
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
+private fun HomeList(
+    state: HomeUiState,
+    listState: LazyListState,
+    onCourseClick: (Long) -> Unit,
+    onMark: (ScheduledClass, AttendanceStatus?) -> Unit,
+) {
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 112.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AttendanceRing(progress = stats.attendancePercentage, size = 104.dp)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "Overall attendance",
-                    style = MaterialTheme.typography.titleMedium,
+        item(key = "overview") {
+            OverviewCard(stats = state.overall, modifier = Modifier.animateItem())
+        }
+        state.nextClass?.let { next ->
+            item(key = "next") {
+                NextClassCard(
+                    nextClass = next,
+                    now = state.now,
+                    onClick = { onCourseClick(next.course.id) },
+                    modifier = Modifier.animateItem(),
                 )
-                Text(
-                    text = if (countable == 0) {
-                        "Nothing marked yet"
-                    } else {
-                        "${stats.totalPresent} of $countable classes attended"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (atRisk) {
-                    Text(
-                        text = "Below 75%",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = AppTheme.status.absent.color,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun NextClassCard(nextClass: NextClass) {
-    val locale = LocalLocale.current.platformLocale
-    val timeLabel = remember(nextClass, locale) { nextClassLabel(nextClass, locale) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Default.Schedule,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
+        if (state.today.isNotEmpty()) {
+            item(key = "today-header") {
+                SectionHeader(title = "Today", modifier = Modifier.animateItem())
+            }
+            items(state.today, key = { "today-${it.course.id}" }) { scheduled ->
+                TodayClassCard(
+                    scheduled = scheduled,
+                    now = state.now,
+                    onMark = { onMark(scheduled, it) },
+                    onClick = { onCourseClick(scheduled.course.id) },
+                    modifier = Modifier.animateItem(),
+                )
+            }
+        }
+        item(key = "courses-header") {
+            SectionHeader(title = "Your courses", modifier = Modifier.animateItem())
+        }
+        items(state.courses, key = { "course-${it.course.id}" }) { summary ->
+            CourseCard(
+                course = summary.course,
+                stats = summary.stats,
+                onClick = { onCourseClick(summary.course.id) },
+                modifier = Modifier.animateItem(),
             )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = "Next class", style = MaterialTheme.typography.labelMedium)
-                Text(
-                    text = nextClass.course.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(text = timeLabel, style = MaterialTheme.typography.bodyMedium)
-            }
         }
     }
 }
 
-private fun nextClassLabel(nextClass: NextClass, locale: Locale): String {
-    val now = LocalDateTime.now()
-    val at = nextClass.scheduledAt
-    val time = at.format(DateTimeFormatter.ofPattern("HH:mm"))
-    val minutesUntil = ChronoUnit.MINUTES.between(now, at)
-    val today = now.toLocalDate()
-    val date = at.toLocalDate()
-
-    return when {
-        minutesUntil in 0..59 -> "In $minutesUntil min  ·  $time"
-        date == today -> "Today  ·  $time"
-        date == today.plusDays(1) -> "Tomorrow  ·  $time"
-        else -> "${date.dayOfWeek.getDisplayName(TextStyle.FULL, locale)}  ·  $time"
-    }
-}
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun EmptyState() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Surface(
-            modifier = Modifier.size(72.dp),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Default.School,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                )
+private fun HomeEmpty(onAddCourse: () -> Unit) {
+    EmptyState(
+        animation = R.raw.empty_courses,
+        title = "No courses yet",
+        message = "Add your first course and Self Attention will remind you before class and keep score for you.",
+        modifier = Modifier.padding(top = 32.dp),
+        illustrationSize = 220.dp,
+        action = {
+            Button(
+                onClick = onAddCourse,
+                shapes = ButtonDefaults.shapes(),
+                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                modifier = Modifier.padding(top = 4.dp),
+            ) {
+                Icon(Icons.Rounded.Add, contentDescription = null)
+                Text("Add a course", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 8.dp))
             }
-        }
-        Spacer(Modifier.height(16.dp))
-        Text(
-            text = "No courses yet",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Add a course to start tracking your attendance.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
+        },
+    )
 }
